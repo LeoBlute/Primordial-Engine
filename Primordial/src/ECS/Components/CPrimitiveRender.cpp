@@ -3,12 +3,14 @@
 #include "CPrimitiveRender.hpp"
 #include "Rendering/Renderer2D.hpp"
 
-CPrimitiveRender::CPrimitiveRender(Renderer2D::Primitive type, const glm::vec4& color)
-	:Type(type), Color(color)
+CPrimitiveRender::CPrimitiveRender(Renderer2D::Shape type, const glm::vec4& color)
 {
+	Type = type;
+	Color = color;
 }
+
 
 void CPrimitiveRender::Draw(const glm::vec2& position, float rotation, const glm::vec2& scale)
 {
-	Renderer2D::DrawPrimitive(Type, position, scale, rotation, Color);
+	Renderer2D::DrawShape(Type, position, scale, rotation, Color);
 }

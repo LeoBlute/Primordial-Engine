@@ -72,7 +72,7 @@ namespace Window{
 	inline unsigned short int TargetTickRate = 60;
 	inline double LastUpdateTime = 0;
 	inline double LastTargetUpdateTime = 0;
-	inline float DeltaTime = 0;
+	inline double DeltaTime = 0;
 
 	//#Life cycle
 	void Init(const char* title, int width, int height);

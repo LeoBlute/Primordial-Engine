@@ -78,7 +78,7 @@ void Inputs::MouseButtonEvent(int button, int action, int mods)
 
 void Inputs::ScrollEvent(double xoffset, double yoffset)
 {
-	GTScroll.Invoke(xoffset, yoffset);
+	GTScroll.Invoke(static_cast<float>(xoffset), static_cast<float>(yoffset));
 }
 
 void Inputs::SetPressingKey(int key, bool pressing)

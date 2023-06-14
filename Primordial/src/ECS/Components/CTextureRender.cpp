@@ -6,5 +6,5 @@
 void CTextureRender::Draw(const glm::vec2& repetition, const glm::vec2& position, float rotation, const glm::vec2& scale)
 {
 	if (!Texture) return;
-	Renderer2D::DrawTexture(Texture, repetition, position, scale, rotation, Color);
+	Renderer2D::DrawTexture(Renderer2D::Quad, Texture, repetition, position, scale, rotation, Color);
 }

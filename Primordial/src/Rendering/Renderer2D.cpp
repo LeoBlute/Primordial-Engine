@@ -34,19 +34,13 @@ void Renderer2D::Init(void* procAdress)
 #endif // DEBUG
 
 	//Shader initialization
-	mPrimitiveShader = new Shader("res/Shaders/PrimitiveVertex2D.shader", "res/Shaders/PrimitiveFragment2D.shader");
+	mShapeShader = new Shader("res/Shaders/PrimitiveVertex2D.shader", "res/Shaders/PrimitiveFragment2D.shader");
 	mTextureShader = new Shader("res/Shaders/TextureVertex2D.shader", "res/Shaders/TextureFragment2D.shader");
 
 	//Create and bind Vertex Array Object
 	glCreateVertexArrays(1, &mVAO);
 	glBindVertexArray(mVAO);
 
-	//std::vector<glm::vec2> quadVertices = {
-	//	glm::vec2(1.0f, 1.0f),  // top right
-	//	glm::vec2(1.0f, 0.0f),  // bottom right
-	//	glm::vec2(0.0f, 0.0f),  // bottom left
-	//	glm::vec2(0.0f, 1.0f)   // top left 
-	//};
 	const std::vector<glm::vec2> quadVertices = {
 		glm::vec2(0.5f, 0.5f),  // top right
 		glm::vec2(0.5f, -0.5f),  // bottom right
@@ -61,21 +55,17 @@ void Renderer2D::Init(void* procAdress)
 	const std::vector<glm::vec2> triangleVertices = {
 		glm::vec2(-0.5f, -0.5f),
 		glm::vec2( 0.5f, -0.5f),
-		glm::vec2(-0.5f, 0.5f)
+		glm::vec2(-0.0f,  0.5f)
 	};
 	const std::vector<unsigned int> triangleIndices = {
-		0, 1, 3
+		0, 1, 2
 	};
 
-	const std::vector<glm::vec4> textureVertices = {
-		glm::vec4( 0.5f,  0.5f, 1.0f, 1.0f),  // top right
-		glm::vec4( 0.5f, -0.5f, 1.0f, 0.0f),  // bottom right
-		glm::vec4(-0.5f, -0.5f, 0.0f, 0.0f),  // bottom left
-		glm::vec4(-0.5f,  0.5f, 0.0f, 1.0f)   // top left 
-	};
-	const std::vector<unsigned int> textureIndices = {  // note that we start from 0!
-		0, 1, 3,  // first Triangle
-		1, 2, 3   // second Triangle
+	const std::vector<glm::vec2> textureVertices = {
+		glm::vec2(1.0f, 1.0f),  // top right
+		glm::vec2(1.0f, 0.0f),  // bottom right
+		glm::vec2(0.0f, 0.0f),  // bottom left
+		glm::vec2(0.0f, 1.0f)   // top left
 	};
 
 	//Quad bufffers
@@ -95,12 +85,9 @@ void Renderer2D::Init(void* procAdress)
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * triangleIndices.size(), triangleIndices.data(), GL_STATIC_DRAW);
 
 	//Texture buffers
-	glCreateBuffers(1, &mTextureVBO);
-	glCreateBuffers(1, &mTextureIBO);
-	glBindBuffer(GL_ARRAY_BUFFER, mTextureVBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTextureIBO);
+	glCreateBuffers(1, &mTextureCoordsBO);
+	glBindBuffer(GL_ARRAY_BUFFER, mTextureCoordsBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * textureVertices.size(), textureVertices.data(), GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * textureIndices.size(), textureIndices.data(), GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -112,57 +99,94 @@ void Renderer2D::Init(void* procAdress)
 
 void Renderer2D::Terminate()
 {
-	delete mPrimitiveShader;
+	delete mShapeShader;
 	delete mTextureShader;
 
 	glDeleteBuffers(1, &mQuadVBO);
 	glDeleteBuffers(1, &mQuadIBO);
 	glDeleteBuffers(1, &mTriangleVBO);
 	glDeleteBuffers(1, &mTriangleIBO);
-	glDeleteBuffers(1, &mTextureVBO);
-	glDeleteBuffers(1, &mTextureIBO);
+	glDeleteBuffers(1, &mTextureCoordsBO);
 
 	glDeleteVertexArrays(1, &mVAO);
 }
 
-void Renderer2D::Clear(const glm::vec4& color, unsigned int mask)
+void Renderer2D::Clear(const glm::vec4& color, const unsigned int mask)
 {
 	glClearColor(color.x, color.y, color.z, color.w);
 	glClear(mask);
 }
 
-void Renderer2D::DrawPrimitive(Primitive type, const glm::vec2& position, const glm::vec2& scale, float rotation, const glm::vec4& color)
+void Renderer2D::DrawShape(Shape shape, const glm::vec2& position, const glm::vec2& scale, const float rotation, const glm::vec4& color)
 {
+	DrawTexture(shape, NULL, glm::vec2(1.0f), position, scale, rotation, color);
+}
+
+void Renderer2D::DrawTexture(Shape shape, Texture* texture, const glm::vec2& repetition, const glm::vec2& position, const glm::vec2& scale, const float rotation, const glm::vec4& color)
+{
+	const bool has_texture = texture != NULL;
+
 	//Get opengl current viewport values
 	glm::ivec4 viewport(0);
 	glGetIntegerv(GL_VIEWPORT, &viewport.x);
-	const float width  = static_cast<float>(viewport.z);
+	const float width = static_cast<float>(viewport.z);
 	const float height = static_cast<float>(viewport.w);
 
-	//Bind/Use appropriate shader
-	mPrimitiveShader->Use();
+	//View dimensions
+	const float view_width = width * Camera::ViewPlaneX;
+	const float view_height = height * Camera::ViewPlaneY;
+
+	//Calculate object's bounds
+	const glm::vec2 final_scale = glm::vec2(scale * ScaleMultiplying);
+
+	//Check if the object is outside viewport
+	if (CheckVisibility(position, final_scale, view_width, view_height))
+		return;
 
 	//Values
-	constexpr float s_mult = 50.0f;
 	constexpr float limit = 1.0f;
 	constexpr glm::mat4 mat4_base = glm::mat4(1.0f);
 
-	//Matrices
-	const glm::mat4 projection = glm::ortho(-width, width, -height, height, -limit, limit);
+	//Camera prokection and view
+	const glm::mat4 projection = glm::ortho(-view_width, view_width, -view_height, view_height, -limit, limit);
 	const glm::mat4 view = glm::translate(mat4_base, glm::vec3(0.0f, 0.0f, 0.0f));
-	glm::mat4 model = glm::translate(mat4_base, glm::vec3(position.x, position.y, 1.0f));
-	model = glm::scale(model, glm::vec3(scale.x * s_mult, scale.y * s_mult, 0.0f));
-	model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
+	//Transformation
+	const glm::mat4 model_translate = glm::translate(mat4_base, glm::vec3(position.x, position.y, 1.0f));
+	const glm::mat4 model_scale = glm::scale(mat4_base, glm::vec3(final_scale, 0.0f));
+	const glm::mat4 model_rotation = glm::rotate(mat4_base, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
+	const glm::mat4 model = model_translate * model_scale * model_rotation;
+
+	Shader* use_shader = nullptr;
+	if (has_texture)
+	{
+		use_shader = mTextureShader;
+		use_shader->Use();
+
+		//Set texture repetition in shader
+		use_shader->SetVec2("uTexRepetition", repetition);
+
+		glBindBuffer(GL_ARRAY_BUFFER, mTextureCoordsBO);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+
+		glActiveTexture(GL_TEXTURE0);
+		//Bind texture, ~obrigado pela explanação
+		texture->Bind();
+	}
+	else
+	{
+		use_shader = mShapeShader;
+		use_shader->Use();
+	}
 
 	//Set Matrices data in shader
-	mPrimitiveShader->SetMat4("uProjection", projection);
-	mPrimitiveShader->SetMat4("uView", view);
-	mPrimitiveShader->SetMat4("uModel", model);
+	use_shader->SetMat4("uProjection", projection);
+	use_shader->SetMat4("uView", view);
+	use_shader->SetMat4("uModel", model);
 
 	//Set color data in shader
-	mPrimitiveShader->SetVec4("uColor", color);
+	use_shader->SetVec4("uColor", color);
 
-	switch (type)
+	switch (shape)
 	{
 	case Renderer2D::Quad:
 	{
@@ -174,7 +198,7 @@ void Renderer2D::DrawPrimitive(Primitive type, const glm::vec2& position, const 
 		//Draw data
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	}
-		break;
+	break;
 	case Renderer2D::Triangle:
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, mTriangleVBO);
@@ -185,66 +209,89 @@ void Renderer2D::DrawPrimitive(Primitive type, const glm::vec2& position, const 
 		//Draw data
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 	}
-		break;
+	break;
 	default:
 		break;
 	}
-}
-
-void Renderer2D::DrawTexture(Texture* texture, const glm::vec2& repetition,
-	const glm::vec2& position, const glm::vec2& scale, float rotation, const glm::vec4& color)
-{
-	if (!texture)
-	{
-		DEBUG_INFO("Você é um animal, texture cannot be a null pointer");
-		return;
-	}
-
-	//Get opengl current viewport values
-	glm::ivec4 viewport(0);
-	glGetIntegerv(GL_VIEWPORT, &viewport.x);
-	const float width =  static_cast<float>(viewport.z);
-	const float height = static_cast<float>(viewport.w);
-
-	mTextureShader->Use();
-
-	glBindBuffer(GL_ARRAY_BUFFER, mTextureVBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTextureIBO);
-
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-
-	//Values
-	constexpr float s_mult = 50.0f;
-	constexpr float limit = 1.0f;
-	constexpr glm::mat4 mat4_base = glm::mat4(1.0f);
-
-	//Matrices
-	const glm::mat4 projection = glm::ortho(-width, width, -height, height, -limit, limit);
-	const glm::mat4 view = glm::translate(mat4_base, glm::vec3(0.0f, 0.0f, 0.0f));
-	glm::mat4 model = glm::translate(mat4_base, glm::vec3(position.x, position.y, 1.0f));
-	model = glm::scale(model, glm::vec3(scale.x * s_mult, scale.y * s_mult, 0.0f));
-	model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
-
-	//Set Matrices data in shader
-	mTextureShader->SetMat4("uProjection", projection);
-	mTextureShader->SetMat4("uView", view);
-	mTextureShader->SetMat4("uModel", model);
-
-	//Set texture repetition in shader
-	mTextureShader->SetVec2("uTexRepetition", repetition);
-	//Set color data in shader
-	mTextureShader->SetVec4("uColor", color);
-
-	glActiveTexture(GL_TEXTURE0);
-	//Bind texture, ~obrigado pela explanação
-	texture->Bind();
 
 	//Draw data
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
-void Renderer2D::SetViewport(int x, int y, int width, int height)
+//void Renderer2D::DrawPrimitive(Primitive type, const glm::vec2& position, const glm::vec2& scale, const float rotation, const glm::vec4& color)
+//{
+//	//Get opengl current viewport values
+//	glm::ivec4 viewport(0);
+//	glGetIntegerv(GL_VIEWPORT, &viewport.x);
+//	const float width  = static_cast<float>(viewport.z);
+//	const float height = static_cast<float>(viewport.w);
+//
+//	//View dimensions
+//	const float view_width = width * Camera::ViewPlaneX;
+//	const float view_height = height * Camera::ViewPlaneY;
+//
+//	//Calculate object's bounds
+//	const glm::vec2 final_scale = glm::vec2(scale * ScaleMultiplying);
+//
+//	//Check if the object is outside viewport
+//	if (CheckVisibility(position, final_scale, view_width, view_height))
+//		return;
+//
+//	//Values
+//	constexpr float limit = 1.0f;
+//	constexpr glm::mat4 mat4_base = glm::mat4(1.0f);
+//
+//	//Camera prokection and view
+//	const glm::mat4 projection = glm::ortho(-view_width, view_width, -view_height, view_height, -limit, limit);
+//	const glm::mat4 view = glm::translate(mat4_base, glm::vec3(0.0f, 0.0f, 0.0f));
+//	//Transformation
+//	const glm::mat4 model_translate = glm::translate(mat4_base, glm::vec3(position.x, position.y, 1.0f));
+//	const glm::mat4 model_scale = glm::scale(mat4_base, glm::vec3(final_scale, 0.0f));
+//	const glm::mat4 model_rotation = glm::rotate(mat4_base, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
+//	const glm::mat4 model = model_translate * model_scale * model_rotation;
+//
+//	//Bind/Use appropriate shader
+//	mPrimitiveShader->Use();
+//
+//	//Set Matrices data in shader
+//	mPrimitiveShader->SetMat4("uProjection", projection);
+//	mPrimitiveShader->SetMat4("uView", view);
+//	mPrimitiveShader->SetMat4("uModel", model);
+//
+//	//Set color data in shader
+//	mPrimitiveShader->SetVec4("uColor", color);
+//
+//	switch (type)
+//	{
+//	case Renderer2D::Quad:
+//	{
+//		glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);
+//		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mQuadIBO);
+//
+//		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+//
+//		//Draw data
+//		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+//	}
+//		break;
+//	case Renderer2D::Triangle:
+//	{
+//		glBindBuffer(GL_ARRAY_BUFFER, mTriangleVBO);
+//		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTriangleIBO);
+//
+//		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+//
+//		//Draw data
+//		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+//	}
+//		break;
+//	default:
+//		break;
+//	}
+//}
+
+
+void Renderer2D::SetViewport(const int x, const int y, const int width, const int height)
 {
 	glViewport(x, y, width, height);
 }

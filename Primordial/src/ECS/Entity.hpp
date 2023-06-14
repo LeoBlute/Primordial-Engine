@@ -68,7 +68,6 @@ namespace ECS {
 
 	public:
 		inline const entt::entity GetID() const { return ID; };
-	protected:
 		CTransform* transform;
 	private:
 		Scene* mAssignedScene;

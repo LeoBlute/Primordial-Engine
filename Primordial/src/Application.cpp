@@ -21,7 +21,7 @@ class Other : public ECS::Entity
 protected:
 	void OnCreated() override
 	{
-		shape = AddComponent<CPrimitiveRender>(Renderer2D::Primitive::Quad, glm::vec4(0.2f, 0.4f, 1.0f, 1.0f));
+		shape = AddComponent<CPrimitiveRender>(Renderer2D::Shape::Quad, glm::vec4(0.2f, 0.4f, 1.0f, 1.0f));
 	}
 	void TargetUpdate() override
 	{
@@ -53,11 +53,12 @@ private:
 protected:
 	void OnCreated() override
 	{
-		renderer = AddComponent<CPrimitiveRender>(Renderer2D::Primitive::Quad, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		texture = new Renderer2D::Texture("res/Images/f4r44t.png");
+		renderer = AddComponent<CTextureRender>(texture, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	};
 	void TargetUpdate() override
 	{
-		renderer->Draw(transform->position, transform->rotation, transform->scale);
+		renderer->Draw(glm::vec2(1.0f), transform->position, transform->rotation, transform->scale);
 	};
 	void TickUpdate() override
 	{
@@ -71,15 +72,15 @@ protected:
 		CTransform* other_transform = other->GetComponent<CTransform>();
 		constexpr float multiplier =  50.0f * 0.5f;
 		//half widths and heights
-		const float width = transform->scale.x * multiplier;
-		const float height = transform->scale.y * multiplier;
-		const float other_width = other_transform->scale.x * multiplier;
+		const float width        = transform->scale.x * multiplier;
+		const float height       = transform->scale.y * multiplier;
+		const float other_width  = other_transform->scale.x * multiplier;
 		const float other_height = other_transform->scale.y * multiplier;
 
-		const float other_top =    other_transform->position.y + other_height;
+		const float other_top    = other_transform->position.y + other_height;
 		const float other_botton = other_transform->position.y - other_height;
-		const float other_left =   other_transform->position.x - other_width;
-		const float other_right =  other_transform->position.x + other_width;
+		const float other_left   = other_transform->position.x - other_width;
+		const float other_right  = other_transform->position.x + other_width;
 
 		const glm::vec2 previous_position = transform->position;
 		const glm::vec2 other_position = other_transform->position;
@@ -93,10 +94,10 @@ protected:
 
 		glm::vec2 position = transform->position;
 
-		float top = position.y + height;
+		float top    = position.y + height;
 		float botton = position.y - height;
-		float left = position.x - width;
-		float right = position.x + width;
+		float left   = position.x - width;
+		float right  = position.x + width;
 
 		const float pos_x_differ = position.x - previous_position.x;
 		if (pos_x_differ != 0.0f &&
@@ -116,10 +117,10 @@ protected:
 		
 		position = transform->position;
 
-		top = position.y + height;
+		top    = position.y + height;
 		botton = position.y - height;
-		left = position.x - width;
-		right = position.x + width;
+		left   = position.x - width;
+		right  = position.x + width;
 
 		const float pos_y_differ = position.y - previous_position.y;
 		if (pos_y_differ != 0.0f &&
@@ -139,7 +140,8 @@ protected:
 public:
 	using Entity::Entity;
 public:
-	CPrimitiveRender* renderer;
+	CTextureRender* renderer;
+	Renderer2D::Texture* texture; 
 	Other* other;
 	constexpr static inline float speed = 10.0f;
 };
@@ -173,14 +175,9 @@ int main(int argc, char* argv)
 	ECS::Scene* scene = ECS::CreateScene();
 
 	//Objs
-	Player* player = ECS::CreateEntity<Player>(scene, "FILLER", 1, glm::vec2(-400.0f, 0.0f), glm::vec2(4.0f));
-	Other* other = ECS::CreateEntity<Other>(scene, "OTHER", 0, glm::vec2(0.0f), glm::vec2(6.0f, 7.5f));
+	Player* player = ECS::CreateEntity<Player>(scene, "Player", 1, glm::vec2(-400.0f, 0.0f), glm::vec2(4.0f));
+	Other* other = ECS::CreateEntity<Other>(scene, "Other", 0, glm::vec2(0.0f), glm::vec2(6.0f, 7.5f));
 	player->other = other;
-
-	CIdentity* identity = player->GetComponent<CIdentity>();
-	DEBUG_INFO(identity->Name);
-
-	Renderer2D::Texture* texture = new Renderer2D::Texture("res/Images/420.jpg");
 
 	//This is the main loop, all visible has it was supposed to be
 	double nowTime = 0;
@@ -189,7 +186,7 @@ int main(int argc, char* argv)
 	{
 		//Timing for target and tick update
 		nowTime = Window::GetTime();
-		Window::DeltaTime = nowTime - Window::LastUpdateTime;
+		Window::DeltaTime = (nowTime - Window::LastUpdateTime);
 		frameDiffer += (Window::DeltaTime) / (1.0 / double(Window::TargetTickRate));
 		Window::LastUpdateTime = nowTime;
 
@@ -207,23 +204,24 @@ int main(int argc, char* argv)
 		//*Target update updates by a fixed Frame-per-second value inside Window
 		//*It is framerate dependent has it is only limited when the application generates more than the intended frames
 		//*Intended for rendering
+
 		if (Window::ShouldTargetUpdate(nowTime))
 		{
 			Window::LastTargetUpdateTime = nowTime;
 			//Rendering
 			Renderer2D::Clear(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), Renderer2D::BitMask::ColorBufferBit);
 			ECS::TargetUpdateScene(scene);
-			Window::MakeContextCurrent();
 		}
+		
 		//GUI handling
 		GUI::NewFrame();
-
+		
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 		//std::cout << viewport->Pos.x << "," << viewport->Pos.y << std::endl;
-
+		
 		GUI::Render();
 		Window::MakeContextCurrent();
-
+		
 		Window::ProcessEvents();
 		Window::SwapBuffer();
 	}
