@@ -70,9 +70,6 @@ namespace Window{
 	//Internal and External variables
 	inline unsigned short int TargetFPS = 60;
 	inline unsigned short int TargetTickRate = 60;
-	inline double LastUpdateTime = 0;
-	inline double LastTargetUpdateTime = 0;
-	inline double DeltaTime = 0;
 
 	//#Life cycle
 	void Init(const char* title, int width, int height);
@@ -80,7 +77,6 @@ namespace Window{
 	void ProcessEvents();
 	void SwapBuffer();
 	const bool ShouldClose();
-	const bool ShouldTargetUpdate(double nowTime) noexcept;
 	void MakeContextCurrent();
 
 	//#Getters and setters related to the window

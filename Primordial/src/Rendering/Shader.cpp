@@ -1,6 +1,7 @@
 #include "Glad/glad.h"
 #include "glm/glm.hpp"
-#include "VUtils/FileUtils.h"
+#include "VUtils/FileUtils.hpp"
+#include "VUtils/DebugUtils.hpp"
 #include "Shader.hpp"
 
 Renderer2D::Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath)

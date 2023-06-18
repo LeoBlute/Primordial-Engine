@@ -12,16 +12,15 @@
 #include "entt/entt.hpp"
 #include "ECS/Entity.hpp"
 #include "Rendering/Texture.hpp"
-#include "ECS/Components/CPrimitiveRender.hpp"
+#include "ECS/Components/CShapeRender.hpp"
 #include "ECS/Components/CTextureRender.hpp"
-
 
 class Other : public ECS::Entity
 {
 protected:
 	void OnCreated() override
 	{
-		shape = AddComponent<CPrimitiveRender>(Renderer2D::Shape::Quad, glm::vec4(0.2f, 0.4f, 1.0f, 1.0f));
+		shape = AddComponent<CShapeRender>(Renderer2D::Shape::Quad, glm::vec4(0.2f, 0.4f, 1.0f, 1.0f));
 	}
 	void TargetUpdate() override
 	{
@@ -33,7 +32,7 @@ protected:
 	}
 public:
 	using Entity::Entity;
-	CPrimitiveRender* shape;
+	CShapeRender* shape;
 };
 
 class Player : public ECS::Entity
@@ -54,7 +53,7 @@ protected:
 	void OnCreated() override
 	{
 		texture = new Renderer2D::Texture("res/Images/f4r44t.png");
-		renderer = AddComponent<CTextureRender>(texture, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		renderer = AddComponent<CTextureRender>(Renderer2D::Shape::Quad, texture, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	};
 	void TargetUpdate() override
 	{
@@ -85,10 +84,6 @@ protected:
 		const glm::vec2 previous_position = transform->position;
 		const glm::vec2 other_position = other_transform->position;
 
-		//Because of how the intersection is calculated there is a small gap between the two faces which can be fixed
-		//by applying this small value in the collision
-		//constexpr float diffix = 0.001f;
-
 		//Mutable values and calculation
 		transform->position.x += velocity.x;
 
@@ -114,7 +109,7 @@ protected:
 		}
 
 		transform->position.y += velocity.y;
-		
+
 		position = transform->position;
 
 		top    = position.y + height;
@@ -180,15 +175,17 @@ int main(int argc, char* argv)
 	player->other = other;
 
 	//This is the main loop, all visible has it was supposed to be
-	double nowTime = 0;
+	double nowTime = 0.0;
 	double frameDiffer = 0.0;
+	double last_update = 0.0;
+	double last_target_update = 0.0;
 	while (!Window::ShouldClose())
 	{
 		//Timing for target and tick update
 		nowTime = Window::GetTime();
-		Window::DeltaTime = (nowTime - Window::LastUpdateTime);
-		frameDiffer += (Window::DeltaTime) / (1.0 / double(Window::TargetTickRate));
-		Window::LastUpdateTime = nowTime;
+		const double delta_time = (nowTime - last_update);
+		frameDiffer += (delta_time) / (1.0 / double(Window::TargetTickRate));
+		last_update = nowTime;
 
 		Inputs::CalculateMouseInput();
 
@@ -204,10 +201,9 @@ int main(int argc, char* argv)
 		//*Target update updates by a fixed Frame-per-second value inside Window
 		//*It is framerate dependent has it is only limited when the application generates more than the intended frames
 		//*Intended for rendering
-
-		if (Window::ShouldTargetUpdate(nowTime))
+		if ((nowTime - last_target_update) >= 1.0 / static_cast<double>(Window::TargetFPS))
 		{
-			Window::LastTargetUpdateTime = nowTime;
+			last_target_update = nowTime;
 			//Rendering
 			Renderer2D::Clear(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), Renderer2D::BitMask::ColorBufferBit);
 			ECS::TargetUpdateScene(scene);

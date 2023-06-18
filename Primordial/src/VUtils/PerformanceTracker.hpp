@@ -1,6 +1,5 @@
 #pragma once
 #include <iostream>
-#include <memory_resource>
 #include <chrono>
 
 //*Determines if should track the amount of memory allocated
@@ -75,35 +74,3 @@ inline void operator delete(void* memory, size_t size)
 
     free(memory);
 }
-
-class PMRTrackerResource : public std::pmr::memory_resource
-{
-public:
-    PMRTrackerResource(std::pmr::memory_resource* upstream)
-        : mUpstream(upstream)
-    {
-    }
-
-    void* do_allocate(std::size_t size, std::size_t alignment) override
-    {
-        void* ptr = mUpstream->allocate(size, alignment);
-        if (gMemtrack)
-            std::cout << "Allocated " << size << " bytes at " << ptr << std::endl;
-        return ptr;
-    }
-
-    void do_deallocate(void* ptr, std::size_t size, std::size_t alignment) override
-    {
-        mUpstream->deallocate(ptr, size, alignment);
-        if (gMemtrack)
-            std::cout << "Deallocated " << size << " bytes at " << ptr << std::endl;
-    }
-
-    bool do_is_equal(const std::pmr::memory_resource& other) const noexcept override
-    {
-        return (this == &other);
-    }
-
-private:
-    std::pmr::memory_resource* mUpstream;
-};

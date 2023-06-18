@@ -160,7 +160,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\ECS\Components\CPrimitiveRender.cpp">
+    <ClCompile Include="src\ECS\Components\CShapeRender.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -243,7 +243,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ECS\Components\CIdentity.hpp" />
-    <ClInclude Include="src\ECS\Components\CPrimitiveRender.hpp" />
+    <ClInclude Include="src\ECS\Components\CShapeRender.hpp" />
     <ClInclude Include="src\ECS\Components\CTextureRender.hpp" />
     <ClInclude Include="src\ECS\Components\CTransform.hpp" />
     <ClInclude Include="src\ECS\Entity.hpp" />
@@ -255,11 +255,11 @@
     <ClInclude Include="src\Rendering\Texture.hpp" />
     <ClInclude Include="src\System\Inputs.hpp" />
     <ClInclude Include="src\GUI\GUI.hpp" />
-    <ClInclude Include="src\VUtils\DebugUtils.h" />
-    <ClInclude Include="src\VUtils\Events.h" />
-    <ClInclude Include="src\VUtils\FileUtils.h" />
-    <ClInclude Include="src\VUtils\PerformanceTracker.h" />
-    <ClInclude Include="src\VUtils\TimeUtils.h" />
+    <ClInclude Include="src\VUtils\DebugUtils.hpp" />
+    <ClInclude Include="src\VUtils\Events.hpp" />
+    <ClInclude Include="src\VUtils\FileUtils.hpp" />
+    <ClInclude Include="src\VUtils\PerformanceTracker.hpp" />
+    <ClInclude Include="src\VUtils\TimeUtils.hpp" />
     <ClInclude Include="vendor\entt\entt.hpp" />
     <ClInclude Include="vendor\imgui\imconfig.h" />
     <ClInclude Include="vendor\imgui\imgui.h" />
@@ -274,8 +274,8 @@
     <ClInclude Include="src\System\Window.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\Shaders\PrimitiveFragment2D.shader" />
-    <None Include="res\Shaders\PrimitiveVertex2D.shader" />
+    <None Include="res\Shaders\ShapeFragment2D.shader" />
+    <None Include="res\Shaders\ShapeVertex2D.shader" />
     <None Include="res\Shaders\Fragment.shader" />
     <None Include="res\Shaders\TextureFragment2D.shader" />
     <None Include="res\Shaders\TextureVertex2D.shader" />

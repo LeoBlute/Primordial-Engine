@@ -21,14 +21,14 @@ namespace Renderer2D
 	void Init(void* procAdress);
 	void Terminate();
 	void Clear(const glm::vec4& color, const unsigned int mask);
-	void DrawShape(Shape shape, const glm::vec2& position, const glm::vec2& scale,
+	void DrawShape(const Shape shape, const glm::vec2& position, const glm::vec2& scale,
 		const float rotation, const glm::vec4& color);
-	void DrawTexture(Shape shape, Texture* texture, const glm::vec2& repetition,
+	void DrawTexture(const Shape shape, Texture* texture, const glm::vec2& repetition,
 		const glm::vec2& position, const glm::vec2& scale, const float rotation, const glm::vec4& color);
 
 	//Checks if object is visible on screen/viewport
 	constexpr static inline bool CheckVisibility(const glm::vec2& position, const glm::vec2& scale,
-		const float screen_width, const float screen_height)
+		const float screen_width, const float screen_height) noexcept
 	{
 		const glm::vec2 top_left = position - (scale * 0.5f);
 		const glm::vec2 bottom_right = position + (scale * 0.5f);
@@ -38,7 +38,6 @@ namespace Renderer2D
 			    bottom_right.y < -screen_height ||
 			    top_left.y     >  screen_height);
 	}
-
 
 	//#Settings
 	void SetViewport(const int x, const int y, const int width, const int height);
@@ -50,7 +49,8 @@ namespace Renderer2D
 	static inline unsigned int mQuadIBO;
 	static inline unsigned int mTriangleVBO;
 	static inline unsigned int mTriangleIBO;
-	static inline unsigned int mTextureCoordsBO;
+	static inline unsigned int mQuadTexCoordsBO;
+	static inline unsigned int mTriangleTexCoordsBO;
 	static inline Shader* mShapeShader;
 	static inline Shader* mTextureShader;
 

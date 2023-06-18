@@ -1,5 +1,8 @@
 #pragma once
-#include "DebugUtils.h"
+#include <fstream>
+#include <type_traits>
+#include <iostream>
+#include <string.h>
 
 namespace FileUtils {
     //Load content of a file to a char* and returns it
@@ -7,7 +10,7 @@ namespace FileUtils {
     {
         std::ifstream file(path, std::ios::binary);
         if (!file.is_open()) {
-            DEBUG_CRIT("Unable to open file");
+            std::cerr << "Unable to open file" << std::endl;
         }
 
         //Get the size of the file
@@ -34,7 +37,7 @@ namespace FileUtils {
     {
         std::ifstream file(path, std::ios::binary);
         if (!file.is_open()) {
-            DEBUG_CRIT("Unable to open file");
+            std::cerr << "Unable to open file" << std::endl;
         }
 
         //get the size of the file

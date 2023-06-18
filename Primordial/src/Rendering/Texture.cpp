@@ -1,7 +1,7 @@
 #include "Glad/glad.h"
 #include "glm/glm.hpp"
 #include "stb/stb_image.h"
-#include "VUtils/DebugUtils.h"
+#include "VUtils/DebugUtils.hpp"
 #include "Texture.hpp"
 
 namespace Renderer2D {

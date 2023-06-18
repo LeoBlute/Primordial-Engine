@@ -1,6 +1,6 @@
 #include <unordered_map>
 #include "glm/glm.hpp"
-#include "VUtils/Events.h"
+#include "VUtils/Events.hpp"
 #include "Window.hpp"
 #include "Inputs.hpp"
 #include "GLFW/include/glfw3.h"
@@ -84,7 +84,7 @@ void Inputs::ScrollEvent(double xoffset, double yoffset)
 void Inputs::SetPressingKey(int key, bool pressing)
 {
 	//If key already exists in map change value if not add key and value
-	auto it = gtIsPressingKey.find(key);
+	const auto it = gtIsPressingKey.find(key);
 	if (it != gtIsPressingKey.end())
 	{
 		gtIsPressingKey[key] = pressing;
@@ -114,7 +114,7 @@ const bool Inputs::GetPressingKey(int key)
 void Inputs::SetHoldingButton(int button, bool holding)
 {
 	//If button already exists in map change value if not add button and value
-	auto it = gtIsHoldingMouseButton.find(button);
+	const auto it = gtIsHoldingMouseButton.find(button);
 	if (it != gtIsHoldingMouseButton.end())
 	{
 		gtIsHoldingMouseButton[button] = holding;
@@ -125,7 +125,7 @@ void Inputs::SetHoldingButton(int button, bool holding)
 	}
 }
 
-const bool Inputs::GetHoldingButton(int button)
+const bool Inputs::GetHoldingButton(int button) noexcept
 {
 	return gtIsHoldingMouseButton[button];
 

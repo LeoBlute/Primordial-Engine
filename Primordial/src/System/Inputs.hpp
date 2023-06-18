@@ -71,16 +71,16 @@ namespace Inputs {
 	void SetPressingKey(int key, bool pressing);
 	const bool GetPressingKey(int key);
 	void SetHoldingButton(int button, bool holding);
-	const bool GetHoldingButton(int button);
+	const bool GetHoldingButton(int button) noexcept;
 
 	//#Input Events
-	inline Event<int> GTKeyPressed;
-	inline Event<int> GTKeyReleased;
-	inline Event<int> GTKeyRepeated;
-	inline Event<int> GTMouseButtonPressed;
-	inline Event<int> GTMouseButtonReleased;
-	inline Event<int> GTMouseButtonRepeated;
-	inline Event<float, float> GTScroll;
+	static inline Event<int> GTKeyPressed;
+	static inline Event<int> GTKeyReleased;
+	static inline Event<int> GTKeyRepeated;
+	static inline Event<int> GTMouseButtonPressed;
+	static inline Event<int> GTMouseButtonReleased;
+	static inline Event<int> GTMouseButtonRepeated;
+	static inline Event<float, float> GTScroll;
 
 	//#Input values
 	static inline double GTCursorPosX;

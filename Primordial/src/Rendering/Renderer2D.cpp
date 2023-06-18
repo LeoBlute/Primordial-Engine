@@ -34,38 +34,44 @@ void Renderer2D::Init(void* procAdress)
 #endif // DEBUG
 
 	//Shader initialization
-	mShapeShader = new Shader("res/Shaders/PrimitiveVertex2D.shader", "res/Shaders/PrimitiveFragment2D.shader");
+	mShapeShader = new Shader("res/Shaders/ShapeVertex2D.shader", "res/Shaders/ShapeFragment2D.shader");
 	mTextureShader = new Shader("res/Shaders/TextureVertex2D.shader", "res/Shaders/TextureFragment2D.shader");
 
 	//Create and bind Vertex Array Object
 	glCreateVertexArrays(1, &mVAO);
 	glBindVertexArray(mVAO);
 
-	const std::vector<glm::vec2> quadVertices = {
-		glm::vec2(0.5f, 0.5f),  // top right
-		glm::vec2(0.5f, -0.5f),  // bottom right
-		glm::vec2(-0.5f, -0.5f),  // bottom left
-		glm::vec2(-0.5f, 0.5f)   // top left 
+	constexpr float quadVertices[] = {
+		 0.5f,  0.5f,  // top right
+		 0.5f, -0.5f,  // bottom right
+		-0.5f, -0.5f,  // bottom left
+		-0.5f,  0.5f   // top left 
 	};
-	const std::vector<unsigned int> quadIndices = {  // note that we start from 0!
+	constexpr unsigned int quadIndices[] = {  // note that we start from 0!
 		0, 1, 3,  // first Triangle
 		1, 2, 3   // second Triangle
 	};
 
-	const std::vector<glm::vec2> triangleVertices = {
-		glm::vec2(-0.5f, -0.5f),
-		glm::vec2( 0.5f, -0.5f),
-		glm::vec2(-0.0f,  0.5f)
+	constexpr float triangleVertices[] = {
+		-0.5f, -0.5f,
+		 0.5f, -0.5f,
+		 0.0f,  0.5f
 	};
-	const std::vector<unsigned int> triangleIndices = {
+	constexpr unsigned int triangleIndices[] = {
 		0, 1, 2
 	};
 
-	const std::vector<glm::vec2> textureVertices = {
-		glm::vec2(1.0f, 1.0f),  // top right
-		glm::vec2(1.0f, 0.0f),  // bottom right
-		glm::vec2(0.0f, 0.0f),  // bottom left
-		glm::vec2(0.0f, 1.0f)   // top left
+	constexpr float quadTexCoords[] = {
+		1.0f, 1.0f,  // top right
+		1.0f, 0.0f,  // bottom right
+		0.0f, 0.0f,  // bottom left
+		0.0f, 1.0f   // top left
+	};
+	
+	constexpr float triangleTexCoords[] = {
+		0.0f, 0.0f,  // bottom left
+		1.0f, 0.0f,  // bottom right
+		0.5f, 1.0f  // top
 	};
 
 	//Quad bufffers
@@ -73,21 +79,26 @@ void Renderer2D::Init(void* procAdress)
 	glCreateBuffers(1, &mQuadIBO);
 	glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mQuadIBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * quadVertices.size(), quadVertices.data(), GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * quadIndices.size(), quadIndices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadIndices), &quadIndices[0], GL_STATIC_DRAW);
 
 	//Triangle buffers
 	glCreateBuffers(1, &mTriangleVBO);
 	glCreateBuffers(1, &mTriangleIBO);
 	glBindBuffer(GL_ARRAY_BUFFER, mTriangleVBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTriangleIBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * triangleVertices.size(), triangleVertices.data(), GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * triangleIndices.size(), triangleIndices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(triangleVertices), &triangleVertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(triangleIndices), &triangleIndices[0], GL_STATIC_DRAW);
 
-	//Texture buffers
-	glCreateBuffers(1, &mTextureCoordsBO);
-	glBindBuffer(GL_ARRAY_BUFFER, mTextureCoordsBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * textureVertices.size(), textureVertices.data(), GL_STATIC_DRAW);
+	//Texture quad buffers
+	glCreateBuffers(1, &mQuadTexCoordsBO);
+	glBindBuffer(GL_ARRAY_BUFFER, mQuadTexCoordsBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadTexCoords),&quadTexCoords[0], GL_STATIC_DRAW);
+
+	//Texture triangle buffers
+	glCreateBuffers(1, &mTriangleTexCoordsBO);
+	glBindBuffer(GL_ARRAY_BUFFER, mTriangleTexCoordsBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(triangleTexCoords),&triangleTexCoords[0], GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -106,7 +117,8 @@ void Renderer2D::Terminate()
 	glDeleteBuffers(1, &mQuadIBO);
 	glDeleteBuffers(1, &mTriangleVBO);
 	glDeleteBuffers(1, &mTriangleIBO);
-	glDeleteBuffers(1, &mTextureCoordsBO);
+	glDeleteBuffers(1, &mQuadTexCoordsBO);
+	glDeleteBuffers(1, &mTriangleTexCoordsBO);
 
 	glDeleteVertexArrays(1, &mVAO);
 }
@@ -117,12 +129,12 @@ void Renderer2D::Clear(const glm::vec4& color, const unsigned int mask)
 	glClear(mask);
 }
 
-void Renderer2D::DrawShape(Shape shape, const glm::vec2& position, const glm::vec2& scale, const float rotation, const glm::vec4& color)
+void Renderer2D::DrawShape(const Shape shape, const glm::vec2& position, const glm::vec2& scale, const float rotation, const glm::vec4& color)
 {
 	DrawTexture(shape, NULL, glm::vec2(1.0f), position, scale, rotation, color);
 }
 
-void Renderer2D::DrawTexture(Shape shape, Texture* texture, const glm::vec2& repetition, const glm::vec2& position, const glm::vec2& scale, const float rotation, const glm::vec4& color)
+void Renderer2D::DrawTexture(const Shape shape, Texture* texture, const glm::vec2& repetition, const glm::vec2& position, const glm::vec2& scale, const float rotation, const glm::vec4& color)
 {
 	const bool has_texture = texture != NULL;
 
@@ -147,7 +159,7 @@ void Renderer2D::DrawTexture(Shape shape, Texture* texture, const glm::vec2& rep
 	constexpr float limit = 1.0f;
 	constexpr glm::mat4 mat4_base = glm::mat4(1.0f);
 
-	//Camera prokection and view
+	//Camera projection and view
 	const glm::mat4 projection = glm::ortho(-view_width, view_width, -view_height, view_height, -limit, limit);
 	const glm::mat4 view = glm::translate(mat4_base, glm::vec3(0.0f, 0.0f, 0.0f));
 	//Transformation
@@ -164,9 +176,6 @@ void Renderer2D::DrawTexture(Shape shape, Texture* texture, const glm::vec2& rep
 
 		//Set texture repetition in shader
 		use_shader->SetVec2("uTexRepetition", repetition);
-
-		glBindBuffer(GL_ARRAY_BUFFER, mTextureCoordsBO);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 
 		glActiveTexture(GL_TEXTURE0);
 		//Bind texture, ~obrigado pela explanação
@@ -190,6 +199,12 @@ void Renderer2D::DrawTexture(Shape shape, Texture* texture, const glm::vec2& rep
 	{
 	case Renderer2D::Quad:
 	{
+		if (has_texture)
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, mQuadTexCoordsBO);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+		}
+
 		glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mQuadIBO);
 
@@ -201,6 +216,12 @@ void Renderer2D::DrawTexture(Shape shape, Texture* texture, const glm::vec2& rep
 	break;
 	case Renderer2D::Triangle:
 	{
+		if (has_texture)
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, mTriangleTexCoordsBO);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+		}
+
 		glBindBuffer(GL_ARRAY_BUFFER, mTriangleVBO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTriangleIBO);
 
@@ -213,82 +234,7 @@ void Renderer2D::DrawTexture(Shape shape, Texture* texture, const glm::vec2& rep
 	default:
 		break;
 	}
-
-	//Draw data
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
-
-//void Renderer2D::DrawPrimitive(Primitive type, const glm::vec2& position, const glm::vec2& scale, const float rotation, const glm::vec4& color)
-//{
-//	//Get opengl current viewport values
-//	glm::ivec4 viewport(0);
-//	glGetIntegerv(GL_VIEWPORT, &viewport.x);
-//	const float width  = static_cast<float>(viewport.z);
-//	const float height = static_cast<float>(viewport.w);
-//
-//	//View dimensions
-//	const float view_width = width * Camera::ViewPlaneX;
-//	const float view_height = height * Camera::ViewPlaneY;
-//
-//	//Calculate object's bounds
-//	const glm::vec2 final_scale = glm::vec2(scale * ScaleMultiplying);
-//
-//	//Check if the object is outside viewport
-//	if (CheckVisibility(position, final_scale, view_width, view_height))
-//		return;
-//
-//	//Values
-//	constexpr float limit = 1.0f;
-//	constexpr glm::mat4 mat4_base = glm::mat4(1.0f);
-//
-//	//Camera prokection and view
-//	const glm::mat4 projection = glm::ortho(-view_width, view_width, -view_height, view_height, -limit, limit);
-//	const glm::mat4 view = glm::translate(mat4_base, glm::vec3(0.0f, 0.0f, 0.0f));
-//	//Transformation
-//	const glm::mat4 model_translate = glm::translate(mat4_base, glm::vec3(position.x, position.y, 1.0f));
-//	const glm::mat4 model_scale = glm::scale(mat4_base, glm::vec3(final_scale, 0.0f));
-//	const glm::mat4 model_rotation = glm::rotate(mat4_base, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
-//	const glm::mat4 model = model_translate * model_scale * model_rotation;
-//
-//	//Bind/Use appropriate shader
-//	mPrimitiveShader->Use();
-//
-//	//Set Matrices data in shader
-//	mPrimitiveShader->SetMat4("uProjection", projection);
-//	mPrimitiveShader->SetMat4("uView", view);
-//	mPrimitiveShader->SetMat4("uModel", model);
-//
-//	//Set color data in shader
-//	mPrimitiveShader->SetVec4("uColor", color);
-//
-//	switch (type)
-//	{
-//	case Renderer2D::Quad:
-//	{
-//		glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);
-//		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mQuadIBO);
-//
-//		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-//
-//		//Draw data
-//		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-//	}
-//		break;
-//	case Renderer2D::Triangle:
-//	{
-//		glBindBuffer(GL_ARRAY_BUFFER, mTriangleVBO);
-//		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTriangleIBO);
-//
-//		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-//
-//		//Draw data
-//		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-//	}
-//		break;
-//	default:
-//		break;
-//	}
-//}
 
 
 void Renderer2D::SetViewport(const int x, const int y, const int width, const int height)

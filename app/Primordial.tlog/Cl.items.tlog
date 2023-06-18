@@ -1,6 +1,6 @@
 C:\Users\Leo_azul\Documents\Projects\Primordial\Primordial\src\Application.cpp;C:\Users\Leo_azul\Documents\Projects\Primordial\app\Application.obj
 C:\Users\Leo_azul\Documents\Projects\Primordial\Primordial\src\ECS\Components\CIdentity.cpp;C:\Users\Leo_azul\Documents\Projects\Primordial\app\CIdentity.obj
-C:\Users\Leo_azul\Documents\Projects\Primordial\Primordial\src\ECS\Components\CPrimitiveRender.cpp;C:\Users\Leo_azul\Documents\Projects\Primordial\app\CPrimitiveRender.obj
+C:\Users\Leo_azul\Documents\Projects\Primordial\Primordial\src\ECS\Components\CShapeRender.cpp;C:\Users\Leo_azul\Documents\Projects\Primordial\app\CShapeRender.obj
 C:\Users\Leo_azul\Documents\Projects\Primordial\Primordial\src\ECS\Components\CTextureRender.cpp;C:\Users\Leo_azul\Documents\Projects\Primordial\app\CTextureRender.obj
 C:\Users\Leo_azul\Documents\Projects\Primordial\Primordial\src\ECS\Components\CTransform.cpp;C:\Users\Leo_azul\Documents\Projects\Primordial\app\CTransform.obj
 C:\Users\Leo_azul\Documents\Projects\Primordial\Primordial\src\ECS\Entity.cpp;C:\Users\Leo_azul\Documents\Projects\Primordial\app\Entity.obj

@@ -1,5 +1,5 @@
-#include "VUtils/DebugUtils.h"
-#include "VUtils/Events.h"
+#include "VUtils/DebugUtils.hpp"
+#include "VUtils/Events.hpp"
 #include "glm/glm.hpp"
 #include "Window.hpp"
 #include "GLFW/include/glfw3.h"
@@ -157,11 +157,6 @@ void Window::SwapBuffer()
 const bool Window::ShouldClose()
 {
 	return glfwWindowShouldClose(mWindow);
-}
-
-const bool Window::ShouldTargetUpdate(double nowTime) noexcept
-{
-	return (nowTime - LastTargetUpdateTime) >= double(1.0 / double(TargetFPS));
 }
 
 void Window::MakeContextCurrent()

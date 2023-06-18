@@ -1,5 +1,6 @@
 #pragma once
-#include "TimeUtils.h"
+#include <string>
+#include <ctime>
 #include <iostream>
 #include <type_traits>
 #include <filesystem>
@@ -14,7 +15,13 @@ namespace DebugUtils {
 
         //construct final message beginning text
         fmsg.append("-");
-        TimeUtils::GetDateToStr(fmsg); //date
+        {
+        time_t t0 = time(0);
+		char cstr[26];
+		ctime_s(cstr, sizeof(cstr), &t0);
+		fmsg.append(cstr);
+		fmsg.pop_back();
+        }
         fmsg.append(additional); //type
 
         //checks if the variable is loggable
@@ -44,7 +51,13 @@ namespace DebugUtils {
 
             //Path + file name
             std::string fileName = "Logs\\Log-"; 
-            TimeUtils::GetDateToStr(fileName);
+        {
+            time_t t0 = time(0);
+		    char cstr[26];
+		    ctime_s(cstr, sizeof(cstr), &t0);
+		    fileName.append(cstr);
+		    fileName.pop_back();
+        }
             for (char& c : fileName)
             {
                 if (c == ' ' || c == ':')
