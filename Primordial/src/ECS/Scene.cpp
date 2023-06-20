@@ -1,9 +1,67 @@
+#include <iostream>
 #include "glm/glm.hpp"
+#include "VUtils/Events.hpp"
 #include "Entity.hpp"
 #include "Scene.hpp"
+#include "System/Inputs.hpp"
 
 namespace ECS
 {
+	static inline void KeyPressedHandle(int key)
+	{
+		for (Entity* entity : mActiveScene->entities)
+		{
+			entity->OnKeyPressed(key);
+		}
+	}
+	static inline void KeyReleasedHandle(int key)
+	{
+		for (Entity* entity : mActiveScene->entities)
+		{
+			entity->OnKeyReleased(key);
+		}
+	}
+	static inline void KeyRepeatedHandle(int key)
+	{
+		for (Entity* entity : mActiveScene->entities)
+		{
+			entity->OnKeyRepeated(key);
+		}
+	}
+	static inline void MousePressedHandle(int button)
+	{
+		for (Entity* entity : mActiveScene->entities)
+		{
+			entity->OnMousePressed(button);
+		}
+	}
+	static inline void MouseReleaseHandle(int button)
+	{
+		for (Entity* entity : mActiveScene->entities)
+		{
+			entity->OnMouseReleased(button);
+		}
+	}
+	static inline void MouseRepeatedHandle(int button)
+	{
+		for (Entity* entity : mActiveScene->entities)
+		{
+			entity->OnMouseRepeated(button);
+		}
+	}
+	Scene* CreateScene()
+	{
+		Scene* scene = new Scene();
+		scene->entities.reserve(100);
+		mActiveScene = scene;
+		Inputs::GTKeyPressed.AddFunc(KeyPressedHandle);
+		Inputs::GTKeyReleased.AddFunc(KeyReleasedHandle);
+		Inputs::GTKeyRepeated.AddFunc(KeyRepeatedHandle);
+		Inputs::GTMouseButtonPressed.AddFunc(MousePressedHandle);
+		Inputs::GTMouseButtonReleased.AddFunc(MouseReleaseHandle);
+		Inputs::GTMouseButtonRepeated.AddFunc(MouseRepeatedHandle);
+		return scene;
+	}
 	void EndScene(Scene* scene)
 	{
 		//Cleans entities and components
@@ -41,7 +99,7 @@ namespace ECS
 		if (!scene || !entity)
 			return;
 
-		auto it = std::find(scene->entities.begin(), scene->entities.end(), entity);
+		const auto it = std::find(scene->entities.begin(), scene->entities.end(), entity);
 		if(it != scene->entities.end())
 		{
 			scene->entities.erase(it);
@@ -51,4 +109,5 @@ namespace ECS
 			scene->Registry.destroy(id);
 		}
 	}
+
 }

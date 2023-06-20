@@ -9,16 +9,11 @@ namespace Renderer2D {
 	public:
 		Texture(const char* path);
 		~Texture();
-
-		//#Settings
 	public:
 		void Bind();
-
-		//#Getters and setters
 	public:
-		constexpr inline const unsigned int GetID() const { return mID; };
-		constexpr inline const glm::ivec2& GetSize() const { return mSize; };
-
+		constexpr inline const unsigned int GetID() const noexcept { return mID; };
+		constexpr inline const glm::ivec2& GetSize() const noexcept { return mSize; };
 	private:
 		unsigned int mID;
 		glm::ivec2 mSize;

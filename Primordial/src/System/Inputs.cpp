@@ -81,7 +81,7 @@ void Inputs::ScrollEvent(double xoffset, double yoffset)
 	GTScroll.Invoke(static_cast<float>(xoffset), static_cast<float>(yoffset));
 }
 
-void Inputs::SetPressingKey(int key, bool pressing)
+void Inputs::SetPressingKey(int key, bool pressing) noexcept
 {
 	//If key already exists in map change value if not add key and value
 	const auto it = gtIsPressingKey.find(key);
@@ -95,7 +95,7 @@ void Inputs::SetPressingKey(int key, bool pressing)
 	}
 }
 
-const bool Inputs::GetPressingKey(int key)
+const bool Inputs::GetPressingKey(int key) noexcept
 {
 	return gtIsPressingKey[key];
 
@@ -111,7 +111,7 @@ const bool Inputs::GetPressingKey(int key)
 	//}
 }
 
-void Inputs::SetHoldingButton(int button, bool holding)
+void Inputs::SetHoldingButton(int button, bool holding) noexcept
 {
 	//If button already exists in map change value if not add button and value
 	const auto it = gtIsHoldingMouseButton.find(button);

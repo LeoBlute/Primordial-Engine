@@ -65,32 +65,32 @@ namespace Inputs {
 	void KeyEvent(int key, int scancode, int action, int mods);
 	void MouseButtonEvent(int button, int action, int mods);
 	void ScrollEvent(double xoffset, double yoffset);
+	
+	//#Input Events
+	inline Event<int> GTKeyPressed;
+	inline Event<int> GTKeyReleased;
+	inline Event<int> GTKeyRepeated;
+	inline Event<int> GTMouseButtonPressed;
+	inline Event<int> GTMouseButtonReleased;
+	inline Event<int> GTMouseButtonRepeated;
+	inline Event<float, float> GTScroll;
+
+	//#Input values
+	inline double GTCursorPosX;
+	inline double GTCursorPosY;
+
+	//#Delta values
+	inline float GTCursorDeltaX;
+	inline float GTCursorDeltaY;
+
+	//#Maps of holding inputs
+	inline std::unordered_map<int, bool> gtIsPressingKey;
+	inline std::unordered_map<int, bool> gtIsHoldingMouseButton;
 
 	//#Getters and setter
 	//#Setters are supposed to be used inside Inputs namespace
-	void SetPressingKey(int key, bool pressing);
-	const bool GetPressingKey(int key);
-	void SetHoldingButton(int button, bool holding);
+	void SetPressingKey(int key, bool pressing) noexcept;
+	const bool GetPressingKey(int key) noexcept;
+	void SetHoldingButton(int button, bool holding) noexcept;
 	const bool GetHoldingButton(int button) noexcept;
-
-	//#Input Events
-	static inline Event<int> GTKeyPressed;
-	static inline Event<int> GTKeyReleased;
-	static inline Event<int> GTKeyRepeated;
-	static inline Event<int> GTMouseButtonPressed;
-	static inline Event<int> GTMouseButtonReleased;
-	static inline Event<int> GTMouseButtonRepeated;
-	static inline Event<float, float> GTScroll;
-
-	//#Input values
-	static inline double GTCursorPosX;
-	static inline double GTCursorPosY;
-
-	//#Delta values
-	static inline float GTCursorDeltaX;
-	static inline float GTCursorDeltaY;
-
-	//#Maps of holding inputs
-	static inline std::unordered_map<int, bool> gtIsPressingKey;
-	static inline std::unordered_map<int, bool> gtIsHoldingMouseButton;
 }

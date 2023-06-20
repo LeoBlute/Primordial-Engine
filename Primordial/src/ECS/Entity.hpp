@@ -14,11 +14,17 @@ namespace ECS {
 		friend void TargetUpdateScene(Scene* scene);
 		friend void DeleteEntity(Scene* scene, Entity* entity);
 		friend void HackOnCreated(Entity* entity);
+		friend void KeyPressedHandle(int key);
+		friend void KeyReleasedHandle(int key);
+		friend void KeyRepeatedHandle(int key);
+		friend void MousePressedHandle(int button);
+		friend void MouseReleaseHandle(int button);
+		friend void MouseRepeatedHandle(int button);
 	private:
 		Entity() = delete;
 		Entity(const Entity&) = delete;
 	public:
-		Entity(entt::entity id, Scene* scene)
+		Entity(const entt::entity id, Scene* scene) noexcept
 			:ID(id), mAssignedScene(scene)
 		{
 			transform = this->GetComponent<CTransform>();
@@ -29,6 +35,13 @@ namespace ECS {
 		virtual void OnDestroyed() {};
 		virtual void TargetUpdate() {};
 		virtual void TickUpdate() {};
+
+		virtual void OnKeyPressed(int key) {};
+		virtual void OnKeyReleased(int key) {};
+		virtual void OnKeyRepeated(int key) {};
+		virtual void OnMousePressed(int button) {};
+		virtual void OnMouseReleased(int button) {};
+		virtual void OnMouseRepeated(int button) {};
 	public:
 		template<typename T>
 		inline const bool HasComponent()

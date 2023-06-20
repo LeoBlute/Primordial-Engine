@@ -55,6 +55,10 @@ protected:
 		texture = new Renderer2D::Texture("res/Images/f4r44t.png");
 		renderer = AddComponent<CTextureRender>(Renderer2D::Shape::Quad, texture, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	};
+	void OnKeyPressed(int key) override
+	{
+		
+	}
 	void TargetUpdate() override
 	{
 		renderer->Draw(glm::vec2(1.0f), transform->position, transform->rotation, transform->scale);

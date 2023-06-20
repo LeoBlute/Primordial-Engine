@@ -23,16 +23,14 @@ namespace ECS {
 		~Scene() = default;
 
 		entt::registry Registry;
-	public: //This are the component nescessary to a entity and should be kept separete so that they are organized in memory like a row
+	public:
+		//Entities in scene
 		std::vector<Entity*> entities;
 	};
 
-	static inline Scene* CreateScene()
-	{
-		Scene* scene = new Scene();
-		scene->entities.reserve(100);
-		return scene;
-	}
+	static inline Scene* mActiveScene;
+
+	Scene* CreateScene();
 	void EndScene(Scene* scene);
 	void TickUpdateScene(Scene* scene);
 	void TargetUpdateScene(Scene* scene);
@@ -62,5 +60,4 @@ namespace ECS {
 
 	//This function deletes a entity correctly,it is a friend of class Entity
 	void DeleteEntity(Scene* scene, Entity* entity);
-
 }
