@@ -7,6 +7,8 @@ class CTransform
 public:
 	CTransform(const glm::vec2& pPos, const glm::vec2& pScale, float pRotation)
 		: position(pPos), scale(pScale), rotation(pRotation) {};
+	CTransform(const CTransform&) = delete;
+	~CTransform() = default;
 public:
 	glm::vec2 position;
 	glm::vec2 scale;

@@ -4,86 +4,54 @@
 #include "Entity.hpp"
 #include "Scene.hpp"
 #include "System/Inputs.hpp"
+#include "VUtils/DebugUtils.hpp"
 
 namespace ECS
 {
-	static inline void KeyPressedHandle(int key)
+	static inline void KeyEventsHandle(int key, Inputs::Type type)
 	{
-		for (Entity* entity : mActiveScene->entities)
+		for (Entity* entity : Scene::mEntities)
 		{
-			entity->OnKeyPressed(key);
+			entity->OnKeyEvent(key, type);
 		}
 	}
-	static inline void KeyReleasedHandle(int key)
+	static inline void MouseButtonEventsHandle(int button, Inputs::Type type)
 	{
-		for (Entity* entity : mActiveScene->entities)
+		for (Entity* entity : Scene::mEntities)
 		{
-			entity->OnKeyReleased(key);
+			entity->OnMouseButtonEvent(button, type);
 		}
 	}
-	static inline void KeyRepeatedHandle(int key)
-	{
-		for (Entity* entity : mActiveScene->entities)
+
+	namespace Scene {
+		void Init()
 		{
-			entity->OnKeyRepeated(key);
+			constexpr size_t capacity = static_cast<const size_t>(100);
+			mEntities.reserve(capacity);
+			Inputs::KeyEvents.AddFunc(KeyEventsHandle);
+			Inputs::MouseButtonEvents.AddFunc(MouseButtonEventsHandle);
 		}
-	}
-	static inline void MousePressedHandle(int button)
-	{
-		for (Entity* entity : mActiveScene->entities)
+		void Terminate()
 		{
-			entity->OnMousePressed(button);
+			for (Entity* e : mEntities)
+			{
+				e->OnDestroyed();
+			}
+			mRegistry.clear();
 		}
-	}
-	static inline void MouseReleaseHandle(int button)
-	{
-		for (Entity* entity : mActiveScene->entities)
+		void TickUpdate()
 		{
-			entity->OnMouseReleased(button);
+			for (Entity* e : mEntities)
+			{
+				e->TickUpdate();
+			}
 		}
-	}
-	static inline void MouseRepeatedHandle(int button)
-	{
-		for (Entity* entity : mActiveScene->entities)
+		void TargetUpdate()
 		{
-			entity->OnMouseRepeated(button);
-		}
-	}
-	Scene* CreateScene()
-	{
-		Scene* scene = new Scene();
-		scene->entities.reserve(100);
-		mActiveScene = scene;
-		Inputs::GTKeyPressed.AddFunc(KeyPressedHandle);
-		Inputs::GTKeyReleased.AddFunc(KeyReleasedHandle);
-		Inputs::GTKeyRepeated.AddFunc(KeyRepeatedHandle);
-		Inputs::GTMouseButtonPressed.AddFunc(MousePressedHandle);
-		Inputs::GTMouseButtonReleased.AddFunc(MouseReleaseHandle);
-		Inputs::GTMouseButtonRepeated.AddFunc(MouseRepeatedHandle);
-		return scene;
-	}
-	void EndScene(Scene* scene)
-	{
-		//Cleans entities and components
-		for (Entity* entity : scene->entities)
-		{
-			entity->OnDestroyed();
-		}
-		scene->Registry.clear();
-		delete scene;
-	}
-	void TickUpdateScene(Scene* scene)
-	{
-		for (Entity* e : scene->entities)
-		{
-			e->TickUpdate();
-		}
-	}
-	void TargetUpdateScene(Scene* scene)
-	{
-		for (Entity* e : scene->entities)
-		{
-			e->TargetUpdate();
+			for (Entity* e : mEntities)
+			{
+				e->TargetUpdate();
+			}
 		}
 	}
 	const bool LayerAlgorithm(Entity* a, Entity* b)
@@ -94,19 +62,18 @@ namespace ECS
 	{
 		entity->OnCreated();
 	}
-	void DeleteEntity(Scene* scene, Entity* entity)
+	void DeleteEntity(Entity* entity)
 	{
-		if (!scene || !entity)
+		if (!entity)
 			return;
-
-		const auto it = std::find(scene->entities.begin(), scene->entities.end(), entity);
-		if(it != scene->entities.end())
+		const auto it = std::find(Scene::mEntities.begin(), Scene::mEntities.end(), entity);
+		if(it != Scene::mEntities.end())
 		{
-			scene->entities.erase(it);
+			Scene::mEntities.erase(it);
 			//I don't know why or how there are 2 destructors being called because that stupid library is classist and works for some other don't
 			const entt::entity id = entity->GetID();
 			entity->OnDestroyed();
-			scene->Registry.destroy(id);
+			Scene::mRegistry.destroy(id);
 		}
 	}
 

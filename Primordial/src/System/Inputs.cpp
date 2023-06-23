@@ -7,9 +7,9 @@
 
 void Inputs::Init()
 {
-	Window::GTKeyEvent.AddFunc(KeyEvent);
-	Window::GTMouseButtonEvent.AddFunc(MouseButtonEvent);
-	Window::GTScrollEvent.AddFunc(ScrollEvent);
+	Window::GTKeyEvent.AddFunc(KeyEventReceiver);
+	Window::GTMouseButtonEvent.AddFunc(MouseButtonEventReceiver);
+	Window::GTScrollEvent.AddFunc(ScrollEventReceiver);
 }
 
 void Inputs::Terminate()
@@ -30,55 +30,53 @@ void Inputs::CalculateMouseInput()
 	GTCursorPosY = mousePos.y;
 }
 
-void Inputs::KeyEvent(int key, int scancode, int action, int mods)
+void Inputs::KeyEventReceiver(int key, int scancode, int action, int mods)
 {
+	Type type = static_cast<Inputs::Type>(action);
+	KeyEvents.Invoke(key, type);
 	switch (action)
 	{
 		//Key pressed
 	case GLFW_PRESS:
-		GTKeyPressed.Invoke(key);
 		Inputs::SetPressingKey(key, 1);
 		break;
 		//Key released
 	case GLFW_RELEASE:
-		GTKeyReleased.Invoke(key);
 		Inputs::SetPressingKey(key, 0);
 		break;
 		//Key repeated
 	case GLFW_REPEAT:
-		GTKeyRepeated.Invoke(key);
 		break;
 	default:
 		break;
 	}
 }
 
-void Inputs::MouseButtonEvent(int button, int action, int mods)
+void Inputs::MouseButtonEventReceiver(int button, int action, int mods)
 {
+	Type type = static_cast<Inputs::Type>(action);
+	MouseButtonEvents.Invoke(button, type);
 	switch (action)
 	{
-		//button pressed
+		//Key pressed
 	case GLFW_PRESS:
-		GTMouseButtonPressed.Invoke(button);
 		Inputs::SetHoldingButton(button, 1);
 		break;
-		//button released
+		//Key released
 	case GLFW_RELEASE:
-		GTMouseButtonReleased.Invoke(button);
 		Inputs::SetHoldingButton(button, 0);
 		break;
-		//button repeated
+		//Key repeated
 	case GLFW_REPEAT:
-		GTMouseButtonRepeated.Invoke(button);
 		break;
 	default:
 		break;
 	}
 }
 
-void Inputs::ScrollEvent(double xoffset, double yoffset)
+void Inputs::ScrollEventReceiver(double xoffset, double yoffset)
 {
-	GTScroll.Invoke(static_cast<float>(xoffset), static_cast<float>(yoffset));
+	ScrollEvent.Invoke(static_cast<float>(xoffset), static_cast<float>(yoffset));
 }
 
 void Inputs::SetPressingKey(int key, bool pressing) noexcept

@@ -236,7 +236,6 @@ void Renderer2D::DrawTexture(const Shape shape, Texture* texture, const glm::vec
 	}
 }
 
-
 void Renderer2D::SetViewport(const int x, const int y, const int width, const int height)
 {
 	glViewport(x, y, width, height);

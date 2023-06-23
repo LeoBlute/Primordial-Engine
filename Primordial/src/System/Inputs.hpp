@@ -56,24 +56,27 @@ class Event;
 #define INPUT_KEY_WORLD_2            162 /* non-US #2 */
 
 namespace Inputs {
+	enum Type
+	{
+		Pressed = 1,
+		Releaesed = 0,
+		Repeated = 2
+	};
+
 	//#Life cycle
 	void Init();
 	void Terminate();
 	void CalculateMouseInput();
 
 	//#Connection to window events nescessary to update input values
-	void KeyEvent(int key, int scancode, int action, int mods);
-	void MouseButtonEvent(int button, int action, int mods);
-	void ScrollEvent(double xoffset, double yoffset);
-	
+	void KeyEventReceiver(int key, int scancode, int action, int mods);
+	void MouseButtonEventReceiver(int button, int action, int mods);
+	void ScrollEventReceiver(double xoffset, double yoffset);
+
 	//#Input Events
-	inline Event<int> GTKeyPressed;
-	inline Event<int> GTKeyReleased;
-	inline Event<int> GTKeyRepeated;
-	inline Event<int> GTMouseButtonPressed;
-	inline Event<int> GTMouseButtonReleased;
-	inline Event<int> GTMouseButtonRepeated;
-	inline Event<float, float> GTScroll;
+	inline Event<int, Inputs::Type> KeyEvents;
+	inline Event<int, Inputs::Type> MouseButtonEvents;
+	inline Event<float, float> ScrollEvent;
 
 	//#Input values
 	inline double GTCursorPosX;

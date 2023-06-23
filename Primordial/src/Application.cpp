@@ -55,9 +55,12 @@ protected:
 		texture = new Renderer2D::Texture("res/Images/f4r44t.png");
 		renderer = AddComponent<CTextureRender>(Renderer2D::Shape::Quad, texture, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	};
-	void OnKeyPressed(int key) override
+	void OnKeyEvent(int key, Inputs::Type type) override
 	{
-		
+		if (key == INPUT_KEY_SPACE && type == Inputs::Pressed)
+		{
+			renderer->Shape = renderer->Shape ? Renderer2D::Quad : Renderer2D::Triangle;
+		}
 	}
 	void TargetUpdate() override
 	{
@@ -171,11 +174,11 @@ int main(int argc, char* argv)
 	GUI::SetColorStyle(GUI::ColorStyle::Dark);
 
 	//Scene
-	ECS::Scene* scene = ECS::CreateScene();
+	ECS::Scene::Init();
 
 	//Objs
-	Player* player = ECS::CreateEntity<Player>(scene, "Player", 1, glm::vec2(-400.0f, 0.0f), glm::vec2(4.0f));
-	Other* other = ECS::CreateEntity<Other>(scene, "Other", 0, glm::vec2(0.0f), glm::vec2(6.0f, 7.5f));
+	Other* other = ECS::CreateEntity<Other>("Other", 0, glm::vec2(0.0f), glm::vec2(6.0f, 7.5f));
+	Player* player = ECS::CreateEntity<Player>("Player", 1, glm::vec2(-400.0f, 0.0f), glm::vec2(4.0f));
 	player->other = other;
 
 	//This is the main loop, all visible has it was supposed to be
@@ -199,7 +202,7 @@ int main(int argc, char* argv)
 		while (frameDiffer >= 1.0)
 		{
 			frameDiffer--;
-			ECS::TickUpdateScene(scene);
+			ECS::Scene::TickUpdate();
 		}
 
 		//*Target update updates by a fixed Frame-per-second value inside Window
@@ -210,7 +213,7 @@ int main(int argc, char* argv)
 			last_target_update = nowTime;
 			//Rendering
 			Renderer2D::Clear(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), Renderer2D::BitMask::ColorBufferBit);
-			ECS::TargetUpdateScene(scene);
+			ECS::Scene::TargetUpdate();
 		}
 		
 		//GUI handling
@@ -226,7 +229,7 @@ int main(int argc, char* argv)
 		Window::SwapBuffer();
 	}
 
-	ECS::EndScene(scene);
+	ECS::Scene::Terminate();
 
 	GUI::Terminate();
 
