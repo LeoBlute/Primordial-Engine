@@ -69,31 +69,31 @@ namespace Inputs {
 	void CalculateMouseInput();
 
 	//#Connection to window events nescessary to update input values
-	void KeyEventReceiver(int key, int scancode, int action, int mods);
-	void MouseButtonEventReceiver(int button, int action, int mods);
-	void ScrollEventReceiver(double xoffset, double yoffset);
+	void KeyEventReceiver(const int key, const int scancode, const int action, const int mods);
+	void MouseButtonEventReceiver(const int button, const int action, const int mods);
+	void ScrollEventReceiver(const double xoffset, const double yoffset);
 
 	//#Input Events
-	inline Event<int, Inputs::Type> KeyEvents;
-	inline Event<int, Inputs::Type> MouseButtonEvents;
-	inline Event<float, float> ScrollEvent;
+	inline Event<const int, const Inputs::Type> KeyEvents;
+	inline Event<const int, const Inputs::Type> MouseButtonEvents;
+	inline Event<const float, const float> ScrollEvent;
 
 	//#Input values
-	inline double GTCursorPosX;
-	inline double GTCursorPosY;
+	inline double CursorPosX;
+	inline double CursorPosY;
 
 	//#Delta values
-	inline float GTCursorDeltaX;
-	inline float GTCursorDeltaY;
+	inline float CursorDeltaX;
+	inline float CursorDeltaY;
 
 	//#Maps of holding inputs
-	inline std::unordered_map<int, bool> gtIsPressingKey;
-	inline std::unordered_map<int, bool> gtIsHoldingMouseButton;
+	inline std::unordered_map<int, bool> mIsPressingKey;
+	inline std::unordered_map<int, bool> mIsHoldingMouseButton;
 
 	//#Getters and setter
 	//#Setters are supposed to be used inside Inputs namespace
-	void SetPressingKey(int key, bool pressing) noexcept;
-	const bool GetPressingKey(int key) noexcept;
-	void SetHoldingButton(int button, bool holding) noexcept;
-	const bool GetHoldingButton(int button) noexcept;
+	void SetPressingKey(const int key, const bool pressing) noexcept;
+	const bool GetPressingKey(const int key) noexcept;
+	void SetHoldingButton(const int button, const bool holding) noexcept;
+	const bool GetHoldingButton(const int button) noexcept;
 }

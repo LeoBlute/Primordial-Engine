@@ -18,6 +18,7 @@ namespace ECS {
 		friend void HackOnCreated(Entity* entity);
 		friend void KeyEventsHandle(int key, Inputs::Type type);
 		friend void MouseButtonEventsHandle(int key, Inputs::Type type);
+		friend void ScrollEventsHandle(const float xoffset, const float yoffset);
 	private:
 		Entity() = delete;
 		Entity(const Entity&) = delete;
@@ -28,6 +29,7 @@ namespace ECS {
 			transform = this->GetComponent<CTransform>();
 		}
 		~Entity() = default;
+		bool operator==(const Entity& other) const = default;
 	protected:
 		virtual void OnCreated() {};
 		virtual void OnDestroyed() {};
@@ -36,6 +38,7 @@ namespace ECS {
 
 		virtual void OnKeyEvent(int key, Inputs::Type type) {};
 		virtual void OnMouseButtonEvent(int key, Inputs::Type type) {};
+		virtual void OnScrollEvent(float xoffset, float yoffset) {};
 	public:
 		template<typename T>
 		inline const bool HasComponent()

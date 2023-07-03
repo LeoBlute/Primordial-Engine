@@ -26,19 +26,32 @@ void Window::Init(const char* title, int width, int height)
 	//Callback setting
 	glfwSetErrorCallback(ErrorCallback);
 	glfwSetMonitorCallback(MonitorCallback);
-	glfwSetWindowPosCallback(mWindow, WindowPosCallback);
-	glfwSetWindowSizeCallback(mWindow, WindowResizeCallback);
-	glfwSetWindowCloseCallback(mWindow, WindowCloseCallback);
-	glfwSetWindowRefreshCallback(mWindow, WindowRefreshCallback);
-	glfwSetWindowFocusCallback(mWindow, WindowFocusCallback);
-	glfwSetFramebufferSizeCallback(mWindow, FramebufferSizeCallback);
-	glfwSetWindowIconifyCallback(mWindow, WindowIconifyCallback);
-	glfwSetCharCallback(mWindow, WindowCharCallback);
-	glfwSetKeyCallback(mWindow, KeyCallback);
-	glfwSetMouseButtonCallback(mWindow, MouseButtonCallback);
-	glfwSetCursorPosCallback(mWindow, CursorPosCallback);
-	glfwSetCursorEnterCallback(mWindow, CursorEnterCallback);
-	glfwSetScrollCallback(mWindow, ScrollCallback);
+	glfwSetWindowPosCallback(mWindow, [](GLFWwindow* window, int xpos, int ypos) {
+		PosEvent.Invoke(xpos, ypos); });
+	glfwSetWindowSizeCallback(mWindow, [](GLFWwindow* window, int width, int height) {
+		ResizeEvent.Invoke(width, height); });
+	glfwSetWindowCloseCallback(mWindow, [](GLFWwindow* window) {
+		CloseEvent.Invoke(); });
+	glfwSetWindowRefreshCallback(mWindow, [](GLFWwindow* window) {
+		RefreshEvent.Invoke(); });
+	glfwSetWindowFocusCallback(mWindow, [](GLFWwindow* window, int focused) {
+		FocusEvent.Invoke(focused); });
+	glfwSetFramebufferSizeCallback(mWindow, [](GLFWwindow* window, int width, int height) {
+		FramebufferSizeEvent.Invoke(width, height);});
+	glfwSetWindowIconifyCallback(mWindow, [](GLFWwindow* window, int iconified) {
+		IconifyEvent.Invoke(iconified); });
+	glfwSetCharCallback(mWindow, [](GLFWwindow* window, unsigned int codepoint) {
+		CharEvent.Invoke(codepoint); });
+	glfwSetKeyCallback(mWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+		KeyEvent.Invoke(key, scancode, action, mods); });
+	glfwSetMouseButtonCallback(mWindow, [](GLFWwindow* window, int button, int action, int mods) {
+		MouseButtonEvent.Invoke(button, action, mods); });
+	glfwSetCursorPosCallback(mWindow, [](GLFWwindow* window, double xpos, double ypos) {
+		CursorPosEvent.Invoke(xpos, ypos); });
+	glfwSetCursorEnterCallback(mWindow, [](GLFWwindow* window, int entered) {
+		CursorEnterEvent.Invoke(entered); });
+	glfwSetScrollCallback(mWindow, [](GLFWwindow* window, double xoffset, double yoffset) {
+		ScrollEvent.Invoke(xoffset, yoffset); });
 }
 
 void Window::Terminate()

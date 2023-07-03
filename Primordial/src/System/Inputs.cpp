@@ -7,9 +7,9 @@
 
 void Inputs::Init()
 {
-	Window::GTKeyEvent.AddFunc(KeyEventReceiver);
-	Window::GTMouseButtonEvent.AddFunc(MouseButtonEventReceiver);
-	Window::GTScrollEvent.AddFunc(ScrollEventReceiver);
+	Window::KeyEvent.AddFunc(KeyEventReceiver);
+	Window::MouseButtonEvent.AddFunc(MouseButtonEventReceiver);
+	Window::ScrollEvent.AddFunc(ScrollEventReceiver);
 }
 
 void Inputs::Terminate()
@@ -21,87 +21,77 @@ void Inputs::CalculateMouseInput()
 	//Calculate cursorAxis{the speed which the mouse in a scale from -1 to 1}
 	glm::vec2 screenSize = Window::GetScreenSize();
 	glm::vec2 mousePos = Window::GetCursorPos();
-	GTCursorDeltaX = float(mousePos.x - GTCursorPosX) / screenSize.x;
-	GTCursorDeltaY = float(GTCursorPosY - mousePos.y) / screenSize.y;
+	CursorDeltaX = float(mousePos.x - CursorPosX) / screenSize.x;
+	CursorDeltaY = float(CursorPosY - mousePos.y) / screenSize.y;
 
 	//Get current cursor position
 	//Values are updated now as they are used previously has a mean to not create two CursorLasPos variables
-	GTCursorPosX = mousePos.x;
-	GTCursorPosY = mousePos.y;
+	CursorPosX = mousePos.x;
+	CursorPosY = mousePos.y;
 }
 
-void Inputs::KeyEventReceiver(int key, int scancode, int action, int mods)
+void Inputs::KeyEventReceiver(const int key, const int scancode, const int action, const int mods)
 {
-	Type type = static_cast<Inputs::Type>(action);
+	const Type type = static_cast<const Inputs::Type>(action);
 	KeyEvents.Invoke(key, type);
-	switch (action)
+	switch (type)
 	{
-		//Key pressed
-	case GLFW_PRESS:
+	case Inputs::Pressed:
 		Inputs::SetPressingKey(key, 1);
 		break;
-		//Key released
-	case GLFW_RELEASE:
+	case Inputs::Releaesed:
 		Inputs::SetPressingKey(key, 0);
 		break;
-		//Key repeated
-	case GLFW_REPEAT:
-		break;
 	default:
 		break;
 	}
 }
 
-void Inputs::MouseButtonEventReceiver(int button, int action, int mods)
+void Inputs::MouseButtonEventReceiver(const int button, const int action, const int mods)
 {
-	Type type = static_cast<Inputs::Type>(action);
+	const Type type = static_cast<const Inputs::Type>(action);
 	MouseButtonEvents.Invoke(button, type);
-	switch (action)
+	switch (type)
 	{
-		//Key pressed
-	case GLFW_PRESS:
+	case Inputs::Pressed:
 		Inputs::SetHoldingButton(button, 1);
 		break;
-		//Key released
-	case GLFW_RELEASE:
+	case Inputs::Releaesed:
 		Inputs::SetHoldingButton(button, 0);
-		break;
-		//Key repeated
-	case GLFW_REPEAT:
 		break;
 	default:
 		break;
 	}
 }
 
-void Inputs::ScrollEventReceiver(double xoffset, double yoffset)
+void Inputs::ScrollEventReceiver(const double xoffset, const double yoffset)
 {
-	ScrollEvent.Invoke(static_cast<float>(xoffset), static_cast<float>(yoffset));
+	ScrollEvent.Invoke(static_cast<const float>(xoffset), static_cast<const float>(yoffset));
 }
 
-void Inputs::SetPressingKey(int key, bool pressing) noexcept
+void Inputs::SetPressingKey(const int key, const bool pressing) noexcept
 {
 	//If key already exists in map change value if not add key and value
-	const auto it = gtIsPressingKey.find(key);
-	if (it != gtIsPressingKey.end())
+	const auto it = mIsPressingKey.find(key);
+	if (it != mIsPressingKey.end())
 	{
-		gtIsPressingKey[key] = pressing;
+		mIsPressingKey[key] = pressing;
 	}
 	else
 	{
-		gtIsPressingKey.emplace(key, pressing);
+		mIsPressingKey.emplace(key, pressing);
 	}
 }
 
-const bool Inputs::GetPressingKey(int key) noexcept
+const bool Inputs::GetPressingKey(const int key) noexcept
 {
-	return gtIsPressingKey[key];
+	return mIsPressingKey[key];
 
 	//*Safer code just in case
-	//auto it = gtIsPressingKey.find(key);
-	//if (it != gtIsPressingKey.end())
+	//auto it = mIsPressingKey.find(key);
+	//if (it != mIsPressingKey.end())
 	//{
-	//	return gtIsPressingKey[key];
+	//	return mIsPressingKey[key];
 	//}
 	//else
 	//{
@@ -109,29 +99,29 @@ const bool Inputs::GetPressingKey(int key) noexcept
 	//}
 }
 
-void Inputs::SetHoldingButton(int button, bool holding) noexcept
+void Inputs::SetHoldingButton(const int button, const bool holding) noexcept
 {
 	//If button already exists in map change value if not add button and value
-	const auto it = gtIsHoldingMouseButton.find(button);
-	if (it != gtIsHoldingMouseButton.end())
+	const auto it = mIsHoldingMouseButton.find(button);
+	if (it != mIsHoldingMouseButton.end())
 	{
-		gtIsHoldingMouseButton[button] = holding;
+		mIsHoldingMouseButton[button] = holding;
 	}
 	else
 	{
-		gtIsHoldingMouseButton.emplace(button, holding);
+		mIsHoldingMouseButton.emplace(button, holding);
 	}
 }
 
-const bool Inputs::GetHoldingButton(int button) noexcept
+const bool Inputs::GetHoldingButton(const int button) noexcept
 {
-	return gtIsHoldingMouseButton[button];
+	return mIsHoldingMouseButton[button];
 
 	//*Safer code just in case
-	//auto it = gtIsHoldingMouseButton.find(button);
-	//if (it != gtIsHoldingMouseButton.end())
+	//auto it = mIsHoldingMouseButton.find(button);
+	//if (it != mIsHoldingMouseButton.end())
 	//{
-	//	return gtIsHoldingMouseButton[button];
+	//	return mIsHoldingMouseButton[button];
 	//}
 	//else
 	//{

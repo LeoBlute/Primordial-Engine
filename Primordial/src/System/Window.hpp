@@ -50,19 +50,19 @@ namespace Window{
 	};
 
 	//#Events here are associated glfw callbacks
-	inline Event<int, int> GTPosEvent; //(int xpos, int ypos)
-	inline Event<int, int> GTResizeEvent; //(int width, int height)
-	inline Event GTCloseEvent; //(none)
-	inline Event GTRefreshEvent; //(none)
-	inline Event<bool> GTFocusEvent; //(int focused)
-	inline Event<int, int> GTFramebufferSizeEvent; //(int width, int height)
-	inline Event<bool> GTIconifyEvent; //(int iconified)
-	inline Event<unsigned int> GTCharEvent; //(unsigned int codepoint)
-	inline Event<int, int, int, int> GTKeyEvent; //(int key, int scancode, int action, int mods)
-	inline Event<int, int, int> GTMouseButtonEvent; //(int button, int action, int mods)
-	inline Event<double, double> GTCursorPosEvent; //(double xpos, double ypos)
-	inline Event<bool> GTCursorEnterEvent; //(Window* window, bool entered)
-	inline Event<double, double> GTScrollEvent; //(double xoffset, double yoffset)
+	inline Event<const int, const int> PosEvent; //(int xpos, int ypos)
+	inline Event<const int, const int> ResizeEvent; //(int width, int height)
+	inline Event<> CloseEvent; //(none)
+	inline Event<> RefreshEvent; //(none)
+	inline Event<const bool> FocusEvent; //(int focused)
+	inline Event<const int, const int> FramebufferSizeEvent; //(int width, int height)
+	inline Event<const bool> IconifyEvent; //(int iconified)
+	inline Event<const unsigned int> CharEvent; //(unsigned int codepoint)
+	inline Event<const int, const int, const int, const int> KeyEvent; //(int key, int scancode, int action, int mods)
+	inline Event<const int, const int, const int> MouseButtonEvent; //(int button, int action, int mods)
+	inline Event<const double, const double> CursorPosEvent; //(double xpos, double ypos)
+	inline Event<const bool> CursorEnterEvent; //(Window* window, bool entered)
+	inline Event<const double, const double> ScrollEvent; //(double xoffset, double yoffset)
 
 	//#Internal variables, intended to not be used outside of namespace
 	inline GLFWwindow* mWindow;
@@ -102,57 +102,4 @@ namespace Window{
 	//#Callbacks
 	void ErrorCallback(int error_code, const char* description);
 	void MonitorCallback(GLFWmonitor* monitor, int event);
-	inline void WindowPosCallback(GLFWwindow* window, int xpos, int ypos)
-	{
-		GTPosEvent.Invoke(xpos, ypos);
-	}
-	inline void WindowResizeCallback(GLFWwindow* window, int width, int height)
-	{
-		GTResizeEvent.Invoke(width, height);
-	}
-	inline void WindowCloseCallback(GLFWwindow* window)
-	{
-		GTCloseEvent.Invoke();
-	}
-	inline void WindowRefreshCallback(GLFWwindow* window)
-	{
-		GTRefreshEvent.Invoke();
-	}
-	inline void WindowFocusCallback(GLFWwindow* window, int focused)
-	{
-		GTFocusEvent.Invoke(focused);
-	}
-	inline void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
-	{
-		GTFramebufferSizeEvent.Invoke(width, height);
-	}
-	inline void WindowIconifyCallback(GLFWwindow* window, int iconified)
-	{
-		GTIconifyEvent.Invoke(iconified);
-	}
-	inline void WindowCharCallback(GLFWwindow* window, unsigned int codepoint)
-	{
-		GTCharEvent.Invoke(codepoint);
-	}
-	inline void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-	{
-		GTKeyEvent.Invoke(key, scancode, action, mods);
-	}
-	inline void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
-	{
-		GTMouseButtonEvent.Invoke(button, action, mods);
-	}
-	inline void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
-	{
-		GTCursorPosEvent.Invoke(xpos, ypos);
-	}
-	inline void CursorEnterCallback(GLFWwindow* window, int entered)
-	{
-		GTCursorEnterEvent.Invoke(entered);
-	}
-	inline void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-	{
-		GTScrollEvent.Invoke(xoffset, yoffset);
-	}
-
 };

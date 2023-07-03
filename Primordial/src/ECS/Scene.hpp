@@ -4,6 +4,9 @@
 #include "Components/CTransform.hpp"
 #include "Components/CIdentity.hpp"
 
+class b2World;
+class CCollision;
+
 namespace ECS {
 	class Entity;
 	namespace Scene {
@@ -15,6 +18,19 @@ namespace ECS {
 
 		inline std::vector<Entity*> mEntities;
 		inline entt::registry mRegistry;
+
+		namespace Physics {
+			//#Life cycle
+			void Init();
+			void Terminate();
+			void Update(const float timestep);
+
+			//Getters and setters
+			const glm::vec2 GetGravity();
+			void SetGravity(const glm::vec2& value);
+			inline b2World* mWorld;
+			inline b2World* GetWorld() { return mWorld; };
+		}
 	}
 
 	const bool LayerAlgorithm(Entity* a, Entity* b);
@@ -23,12 +39,13 @@ namespace ECS {
 	//This function creates a entity correctly,it is a friend of class Entity
 	template<typename T>
 	constexpr static inline T* CreateEntity(const std::string& name, unsigned int layer = 0,
-		const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::vec2& scale = glm::vec2(1.0f, 1.0f))
+		const glm::vec2& position = glm::vec2(0.0f, 0.0f), const float rotation = 0.0f,
+		const glm::vec2& scale = glm::vec2(1.0f, 1.0f))
 	{
 		entt::registry& reg = Scene::mRegistry;
 		const entt::entity id = reg.create();
 		//Creates some essential components for the entity
-		reg.emplace<CTransform>(id, position, scale, 0.0f);
+		reg.emplace<CTransform>(id, position, scale, rotation);
 		reg.emplace<CIdentity>(id, name, layer);
 		T* entity = &reg.emplace<T>(id, id);
 		HackOnCreated(entity);

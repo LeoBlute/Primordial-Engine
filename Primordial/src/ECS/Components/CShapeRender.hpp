@@ -1,3 +1,4 @@
+#pragma once
 
 namespace Renderer2D {
 	enum Shape;

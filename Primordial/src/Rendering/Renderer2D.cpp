@@ -152,8 +152,8 @@ void Renderer2D::DrawTexture(const Shape shape, Texture* texture, const glm::vec
 	const glm::vec2 final_scale = glm::vec2(scale * ScaleMultiplying);
 
 	//Check if the object is outside viewport
-	if (CheckVisibility(position, final_scale, view_width, view_height))
-		return;
+	//if (CheckVisibility(position, final_scale, view_width, view_height))
+	//	return;
 
 	//Values
 	constexpr float limit = 1.0f;
@@ -163,7 +163,8 @@ void Renderer2D::DrawTexture(const Shape shape, Texture* texture, const glm::vec
 	const glm::mat4 projection = glm::ortho(-view_width, view_width, -view_height, view_height, -limit, limit);
 	const glm::mat4 view = glm::translate(mat4_base, glm::vec3(0.0f, 0.0f, 0.0f));
 	//Transformation
-	const glm::mat4 model_translate = glm::translate(mat4_base, glm::vec3(position.x, position.y, 1.0f));
+	const glm::mat4 model_translate = glm::translate
+	(mat4_base, glm::vec3(position.x * ScaleMultiplying, position.y * ScaleMultiplying, 1.0f));
 	const glm::mat4 model_scale = glm::scale(mat4_base, glm::vec3(final_scale, 0.0f));
 	const glm::mat4 model_rotation = glm::rotate(mat4_base, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
 	const glm::mat4 model = model_translate * model_scale * model_rotation;

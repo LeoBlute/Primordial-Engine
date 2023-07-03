@@ -14,6 +14,7 @@
 #include "Rendering/Texture.hpp"
 #include "ECS/Components/CShapeRender.hpp"
 #include "ECS/Components/CTextureRender.hpp"
+#include "ECS/Components/CCollision.hpp"
 
 class Other : public ECS::Entity
 {
@@ -35,25 +36,60 @@ public:
 	CShapeRender* shape;
 };
 
+class Col : public ECS::Entity
+{
+protected:
+	void OnKeyEvent(int key, Inputs::Type type) override
+	{
+		if (key == INPUT_KEY_F && type == Inputs::Pressed)
+		{
+			box->ApplyImpulse(glm::vec2(0.0f, 300.0f));
+		}
+	}
+	void OnCreated() override
+	{
+		shape = AddComponent<CShapeRender>(Renderer2D::Shape::Quad, glm::vec4(0.7f, 1.0f, 0.2f, 1.0f));
+		CCollision::Stats stats;
+		stats.density = 1.0f;
+		stats.fixedRotation = false;
+		stats.friction = 0.3f;
+		stats.gravity = 1.0f;
+		stats.isTrigger = false;
+		stats.restitution = 0.3f;
+		stats.restitutionThreshold = 0.5f;
+		stats.type = CCollision::Type::Dynamic;
+		box = AddComponent<CCollision>(this, stats);
+	}
+	void TargetUpdate() override
+	{
+		shape->Draw(transform->position, transform->rotation, transform->scale);
+	}
+public:
+	using Entity::Entity;
+	CShapeRender* shape;
+	CCollision* box;
+};
+
+
 class Player : public ECS::Entity
 {
 private:
-	constexpr static inline bool CheckIntersect(const float left, const float right, const float top, const float botton,
-		const float other_left, const float other_right, const float other_top, const float other_botton) noexcept
-	{
-		if (left < other_right && 
-			right > other_left &&
-			top > other_botton &&
-			botton < other_top)
-			return true;
-
-		return false;
-	}
 protected:
 	void OnCreated() override
 	{
 		texture = new Renderer2D::Texture("res/Images/f4r44t.png");
 		renderer = AddComponent<CTextureRender>(Renderer2D::Shape::Quad, texture, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		CCollision::Stats stats;
+		stats.density = 1.0f;
+		stats.fixedRotation = true;
+		stats.friction = 0.3f;
+		stats.gravity = 1.0f;
+		stats.isTrigger = false;
+		stats.linearDamping = 2.0f;
+		stats.restitution = 0.1f;
+		stats.restitutionThreshold = 0.5f;
+		stats.type = CCollision::Type::Dynamic;
+		physics = AddComponent<CCollision>(this, stats);
 	};
 	void OnKeyEvent(int key, Inputs::Type type) override
 	{
@@ -70,82 +106,19 @@ protected:
 	{
 		glm::vec2 velocity = glm::vec2(0.0f, 0.0f);
 		if (Inputs::GetPressingKey(INPUT_KEY_W)) { velocity.y += speed; }
-		if (Inputs::GetPressingKey(INPUT_KEY_S)) { velocity.y -= speed; }
 		if (Inputs::GetPressingKey(INPUT_KEY_A)) { velocity.x -= speed; }
 		if (Inputs::GetPressingKey(INPUT_KEY_D)) { velocity.x += speed; }
 
-		//Const values
-		CTransform* other_transform = other->GetComponent<CTransform>();
-		constexpr float multiplier =  50.0f * 0.5f;
-		//half widths and heights
-		const float width        = transform->scale.x * multiplier;
-		const float height       = transform->scale.y * multiplier;
-		const float other_width  = other_transform->scale.x * multiplier;
-		const float other_height = other_transform->scale.y * multiplier;
-
-		const float other_top    = other_transform->position.y + other_height;
-		const float other_botton = other_transform->position.y - other_height;
-		const float other_left   = other_transform->position.x - other_width;
-		const float other_right  = other_transform->position.x + other_width;
-
-		const glm::vec2 previous_position = transform->position;
-		const glm::vec2 other_position = other_transform->position;
-
-		//Mutable values and calculation
-		transform->position.x += velocity.x;
-
-		glm::vec2 position = transform->position;
-
-		float top    = position.y + height;
-		float botton = position.y - height;
-		float left   = position.x - width;
-		float right  = position.x + width;
-
-		const float pos_x_differ = position.x - previous_position.x;
-		if (pos_x_differ != 0.0f &&
-			CheckIntersect(left, right, top, botton, other_left, other_right, other_top, other_botton))
-		{
-			if      (pos_x_differ > 0.0f) //Intersected when moving to right
-			{
-				transform->position.x = other_left - width;
-			}
-			else if (pos_x_differ < 0.0f) //Intersected when moving to left
-			{
-				transform->position.x = other_right + width;
-			}
-		}
-
-		transform->position.y += velocity.y;
-
-		position = transform->position;
-
-		top    = position.y + height;
-		botton = position.y - height;
-		left   = position.x - width;
-		right  = position.x + width;
-
-		const float pos_y_differ = position.y - previous_position.y;
-		if (pos_y_differ != 0.0f &&
-			CheckIntersect(left, right, top, botton, other_left, other_right, other_top, other_botton))
-		{
-			if      (pos_y_differ > 0.0f)
-			{
-				transform->position.y = other_botton - height;
-			}
-			else if (pos_y_differ < 0.0f)
-			{
-				transform->position.y = other_top + height;
-			}
-		}
-		//Pain is strength
+		const glm::vec2 impulse = velocity * 10.0f;
+		physics->ApplyImpulse(impulse);
 	}
 public:
 	using Entity::Entity;
 public:
 	CTextureRender* renderer;
-	Renderer2D::Texture* texture; 
-	Other* other;
-	constexpr static inline float speed = 10.0f;
+	CCollision* physics;
+	Renderer2D::Texture* texture;
+	constexpr static inline float speed = 3.0f;
 };
 
 int main(int argc, char* argv)
@@ -164,7 +137,7 @@ int main(int argc, char* argv)
 
 	//Setting renderer initial viewport and creates a lamda so that it's change every time the window is resized);
 	Renderer2D::SetViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-	Window::GTFramebufferSizeEvent.AddFunc([](int w, int h) { Renderer2D::SetViewport(0, 0, w, h); });
+	Window::FramebufferSizeEvent.AddFunc([](int w, int h) { Renderer2D::SetViewport(0, 0, w, h); });
 
 	//Inputs
 	Inputs::Init();
@@ -177,40 +150,43 @@ int main(int argc, char* argv)
 	ECS::Scene::Init();
 
 	//Objs
-	Other* other = ECS::CreateEntity<Other>("Other", 0, glm::vec2(0.0f), glm::vec2(6.0f, 7.5f));
-	Player* player = ECS::CreateEntity<Player>("Player", 1, glm::vec2(-400.0f, 0.0f), glm::vec2(4.0f));
-	player->other = other;
+	Player* player = ECS::CreateEntity<Player>("Player", 1, glm::vec2(-4.0f, 5.0f), 0.0f, glm::vec2(4.0f));
+	Col* col1 = ECS::CreateEntity<Col>("Collision", 1, glm::vec2(1.0f, 8.0f), 37.0f, glm::vec2(4.0f));
+	Col* floor = ECS::CreateEntity<Col>("Collision", 1, glm::vec2(0.0f, 0.0f), 0.0f, glm::vec2(100.0f, 1.0f));
+
+	floor->box->SetType(CCollision::Static);
+	col1->box->SetType(CCollision::Dynamic);
 
 	//This is the main loop, all visible has it was supposed to be
-	double nowTime = 0.0;
-	double frameDiffer = 0.0;
+	double now_time = 0.0;
+	double frame_differ = 0.0;
 	double last_update = 0.0;
 	double last_target_update = 0.0;
 	while (!Window::ShouldClose())
 	{
 		//Timing for target and tick update
-		nowTime = Window::GetTime();
-		const double delta_time = (nowTime - last_update);
-		frameDiffer += (delta_time) / (1.0 / double(Window::TargetTickRate));
-		last_update = nowTime;
+		now_time = Window::GetTime();
+		const double delta_time = (now_time - last_update);
+		frame_differ += (delta_time) / (1.0 / double(Window::TargetTickRate));
+		last_update = now_time;
 
 		Inputs::CalculateMouseInput();
 
 		//*Tick update updates by a fixed Tick-per-second value inside Window
 		//*It is framerate independent
 		//*Intended for game logic
-		while (frameDiffer >= 1.0)
+		while (frame_differ >= 1.0)
 		{
-			frameDiffer--;
+			frame_differ--;
 			ECS::Scene::TickUpdate();
 		}
 
 		//*Target update updates by a fixed Frame-per-second value inside Window
 		//*It is framerate dependent has it is only limited when the application generates more than the intended frames
 		//*Intended for rendering
-		if ((nowTime - last_target_update) >= 1.0 / static_cast<double>(Window::TargetFPS))
+		if ((now_time - last_target_update) >= 1.0 / static_cast<double>(Window::TargetFPS))
 		{
-			last_target_update = nowTime;
+			last_target_update = now_time;
 			//Rendering
 			Renderer2D::Clear(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), Renderer2D::BitMask::ColorBufferBit);
 			ECS::Scene::TargetUpdate();
