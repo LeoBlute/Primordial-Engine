@@ -1,5 +1,6 @@
 C:\Users\Leo_azul\Documents\Projects\Primordial\Primordial\src\Application.cpp;C:\Users\Leo_azul\Documents\Projects\Primordial\app\Application.obj
-C:\Users\Leo_azul\Documents\Projects\Primordial\Primordial\src\ECS\Components\CCollision.cpp;C:\Users\Leo_azul\Documents\Projects\Primordial\app\CCollision.obj
+C:\Users\Leo_azul\Documents\Projects\Primordial\Primordial\src\ECS\Components\Component.cpp;C:\Users\Leo_azul\Documents\Projects\Primordial\app\Component.obj
+C:\Users\Leo_azul\Documents\Projects\Primordial\Primordial\src\ECS\Components\CPhysicsBody.cpp;C:\Users\Leo_azul\Documents\Projects\Primordial\app\CPhysicsBody.obj
 C:\Users\Leo_azul\Documents\Projects\Primordial\Primordial\src\ECS\Components\CShapeRender.cpp;C:\Users\Leo_azul\Documents\Projects\Primordial\app\CShapeRender.obj
 C:\Users\Leo_azul\Documents\Projects\Primordial\Primordial\src\ECS\Components\CTextureRender.cpp;C:\Users\Leo_azul\Documents\Projects\Primordial\app\CTextureRender.obj
 C:\Users\Leo_azul\Documents\Projects\Primordial\Primordial\src\ECS\Entity.cpp;C:\Users\Leo_azul\Documents\Projects\Primordial\app\Entity.obj

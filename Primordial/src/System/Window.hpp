@@ -1,8 +1,5 @@
 #pragma once
 
-struct GLFWwindow;
-struct GLFWmonitor;
-
 template<typename... Args>
 class Event;
 
@@ -49,7 +46,7 @@ namespace Window{
 		Fullscreen
 	};
 
-	//#Events here are associated glfw callbacks
+	#pragma region Events associated glfw callbacks
 	inline Event<const int, const int> PosEvent; //(int xpos, int ypos)
 	inline Event<const int, const int> ResizeEvent; //(int width, int height)
 	inline Event<> CloseEvent; //(none)
@@ -63,23 +60,23 @@ namespace Window{
 	inline Event<const double, const double> CursorPosEvent; //(double xpos, double ypos)
 	inline Event<const bool> CursorEnterEvent; //(Window* window, bool entered)
 	inline Event<const double, const double> ScrollEvent; //(double xoffset, double yoffset)
+	#pragma endregion
 
-	//#Internal variables, intended to not be used outside of namespace
-	inline GLFWwindow* mWindow;
-
-	//Internal and External variables
+	#pragma region Internal and external variables
 	inline unsigned short int TargetFPS = 60;
 	inline unsigned short int TargetTickRate = 60;
+	#pragma endregion
 
-	//#Life cycle
+	#pragma region  Life cycle
 	void Init(const char* title, int width, int height);
 	void Terminate();
 	void ProcessEvents();
 	void SwapBuffer();
 	const bool ShouldClose();
 	void MakeContextCurrent();
+	#pragma endregion
 
-	//#Getters and setters related to the window
+	#pragma region  Getters and setters related to the window
 	void SetTitle(const char* title);
 	void SetMode(Mode mode);
 	void* GetProcAdress();
@@ -92,14 +89,19 @@ namespace Window{
 	const bool GetIsOnFocus();
 	void SetFocus();
 	const double GetTime();
+	//Get the glfw window
+	void* GetRawWindow();
+	#pragma endregion
 
-	//#Getters and setters not related to the window
-	const int GetCursorMode();
+	#pragma region Getters and setters not related to the window
+	const CursorMode GetCursorMode();
 	void SetVSync(bool value);
-	void SetCursorMode(CursorMode mode);
+	void SetCursorMode(const CursorMode mode);
 	const glm::dvec2 GetCursorPos();
+	#pragma endregion
 
-	//#Callbacks
+	#pragma region Callbacks
 	void ErrorCallback(int error_code, const char* description);
-	void MonitorCallback(GLFWmonitor* monitor, int event);
+	void MonitorCallback(void* monitor, int event);
+	#pragma endregion
 };

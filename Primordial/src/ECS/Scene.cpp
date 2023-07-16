@@ -6,7 +6,7 @@
 #include "Scene.hpp"
 #include "System/Inputs.hpp"
 #include "Rendering/Renderer2D.hpp"
-#include "ECS/Components/CCollision.hpp"
+#include "ECS/Components/CPhysicsBody.hpp"
 #include "VUtils/DebugUtils.hpp"
 
 namespace ECS
@@ -35,10 +35,36 @@ namespace ECS
 
 	namespace Scene {
 		namespace Physics {
+			inline b2World* mWorld;
+
+			class ContactListener : public b2ContactListener
+			{
+				void BeginContact(b2Contact* contact) override
+				{
+					CPhysicsBody* a = CPhysicsBody::GetFromBody(contact->GetFixtureA()->GetBody());
+					CPhysicsBody* b = CPhysicsBody::GetFromBody(contact->GetFixtureB()->GetBody());
+
+					a->SetCollidingWith(b, true);
+					b->SetCollidingWith(a, true);
+				}
+
+				void EndContact(b2Contact* contact) override
+				{
+					CPhysicsBody* a = CPhysicsBody::GetFromBody(contact->GetFixtureA()->GetBody());
+					CPhysicsBody* b = CPhysicsBody::GetFromBody(contact->GetFixtureB()->GetBody());
+
+					a->SetCollidingWith(b, false);
+					b->SetCollidingWith(a, false);
+				}
+			};
+			inline ContactListener* contactor;
+
 			void Init()
 			{
-				const b2Vec2 non_existant(0.0f, -50.0f);
-				mWorld = new b2World(non_existant);
+				const b2Vec2 pressure(0.0f, -50.0f);
+				mWorld = new b2World(pressure);
+				contactor = new ContactListener();
+				mWorld->SetContactListener(contactor);
 			}
 			void Terminate()
 			{
@@ -47,6 +73,7 @@ namespace ECS
 					DEBUG_TODO("Include safety deletion since the idiot did not");
 				}
 				delete mWorld;
+				delete contactor;
 			}
 
 			void Update(const float timestep)
@@ -54,22 +81,20 @@ namespace ECS
 				const int velocityIterations = 6;
 				const int positionIterations = 2;
 
-				auto view = mRegistry.view<CCollision>();
-				for (entt::entity id : view)
+				const auto view = mRegistry.view<CPhysicsBody>();
+				for (const entt::entity id : view)
 				{
-					CCollision& col = view.get<CCollision>(id);
+					CPhysicsBody& col = view.get<CPhysicsBody>(id);
 					col.PreStep();
 				}
 
 				mWorld->Step(timestep, velocityIterations, positionIterations);
 
-				for (entt::entity id : view)
+				for (const entt::entity id : view)
 				{
-					CCollision& col = view.get<CCollision>(id);
+					CPhysicsBody& col = view.get<CPhysicsBody>(id);
 					col.PostStep();
 				}
-
-				//printf("%4.2f %4.2f %4.2f\n", position.x, position.y, angle);
 			}
 			
 			const glm::vec2 GetGravity()
@@ -81,6 +106,10 @@ namespace ECS
 			{
 				const b2Vec2 f_value(value.x, value.y);
 				mWorld->SetGravity(f_value);
+			}
+			void* GetWorld()
+			{
+				return mWorld;
 			}
 		}
 

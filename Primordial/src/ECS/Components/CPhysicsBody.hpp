@@ -2,18 +2,25 @@
 
 #pragma region Fake class definitions
 
-class b2Body;
-
 class CTransform;
 
 namespace ECS {
 	class Entity;
+	namespace Scene {
+		namespace Physics {
+			void Update(const float timestep);
+			class ContactListener;
+		}
+	}
 }
 
 #pragma endregion
 
-class CCollision
+class CPhysicsBody
 {
+private:
+	friend void ECS::Scene::Physics::Update(const float timeStep);
+	friend ECS::Scene::Physics::ContactListener;
 public:
 	enum Type
 	{
@@ -55,27 +62,42 @@ public:
 
 		//Restitution velocity threshold, usually in m/s. Collisions above this
 		//speed have restitution applied (will bounce).
-		float restitutionThreshold = 0.5f;
+		float restitutionThreshold = 1.0f;
 
 		//The friction coefficient, usually in the range [0,1].
 		float friction = 0.2f;
 	};
 public:
-	//#Deleted construction
-	CCollision(const CCollision&) = delete;
-	CCollision() = delete;
+	#pragma region Deleted construction
+	CPhysicsBody(const CPhysicsBody&) = delete;
+	CPhysicsBody() = delete;
+	#pragma endregion
 
-	//#Life cycle
-	CCollision(ECS::Entity* assignedEntity, const Stats& stats);
-	~CCollision();
+	#pragma region Life cycle
+	CPhysicsBody(ECS::Entity* assignedEntity, const Stats& stats);
+	~CPhysicsBody();
 	void PreStep();
 	void PostStep();
+	#pragma endregion
 
-	//#Other
-	void ApplyImpulse(const glm::vec2& impulse);
+	#pragma region Velocity Related
+	void ApplyLinearImpulseAt(const glm::vec2& impulse, const glm::vec2& position);
+	void ApplyLinearImpulse(const glm::vec2& impulse);
+	void ApplyForceAt(const glm::vec2& force, const glm::vec2& position);
 	void ApplyForce(const glm::vec2& force);
+	void ApplyAngularImpulse(const float impulse);
+	void ApplyTorque(const float torque);
+	const glm::vec2 GetLinearVelocity();
+	const float GetAngularVelocity();
+	void SetVelocity(const glm::vec2& linear, const float angular);
+	void SetLinearVelocity(const glm::vec2& velocity);
+	void SetAngularVelocity(const float velocity);
+#pragma endregion
 
-	//#Getters and setters
+	//Get the CPhysicsBody* associated with the given b2Body
+	static CPhysicsBody* GetFromBody(void* body);
+
+	#pragma region Getters and setters
 	inline const Stats& GetStats() { return mStats; };
 	inline const Type GetType() { return mStats.type; };
 	inline const bool GetIsFixedRotation() { return mStats.fixedRotation; };
@@ -121,10 +143,15 @@ public:
 		mStats.friction = friction;
 		UpdateBodyStats();
 	}
+	const bool IsCollidingWith(CPhysicsBody* other);
+	#pragma endregion
 private:
 	void UpdateBodyStats();
+	void SetCollidingWith(CPhysicsBody* col, const bool is);
 private:
+	ECS::Entity* mAssignedEntity;
 	CTransform* mAssignedTransform;
-	b2Body* mBody;
+	void* mBody;
 	Stats mStats;
+	std::unordered_map<CPhysicsBody*, bool> mCollidings;
 };

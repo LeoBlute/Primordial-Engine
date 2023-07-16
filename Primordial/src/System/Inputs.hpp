@@ -63,37 +63,45 @@ namespace Inputs {
 		Repeated = 2
 	};
 
-	//#Life cycle
+	#pragma region Life cycle
 	void Init();
 	void Terminate();
 	void CalculateMouseInput();
+	#pragma endregion
 
-	//#Connection to window events nescessary to update input values
+	#pragma region Connection to window events nescessary to update input values
 	void KeyEventReceiver(const int key, const int scancode, const int action, const int mods);
 	void MouseButtonEventReceiver(const int button, const int action, const int mods);
 	void ScrollEventReceiver(const double xoffset, const double yoffset);
+	#pragma endregion
 
-	//#Input Events
+	#pragma region Input Events
 	inline Event<const int, const Inputs::Type> KeyEvents;
 	inline Event<const int, const Inputs::Type> MouseButtonEvents;
 	inline Event<const float, const float> ScrollEvent;
+	#pragma endregion
 
-	//#Input values
+	#pragma region Input values
 	inline double CursorPosX;
 	inline double CursorPosY;
+	#pragma endregion
 
-	//#Delta values
+	#pragma region regionDelta values
 	inline float CursorDeltaX;
 	inline float CursorDeltaY;
+	#pragma endregion
 
-	//#Maps of holding inputs
+	#pragma region Maps of holding inputs
 	inline std::unordered_map<int, bool> mIsPressingKey;
 	inline std::unordered_map<int, bool> mIsHoldingMouseButton;
+	#pragma endregion
 
-	//#Getters and setter
-	//#Setters are supposed to be used inside Inputs namespace
+	#pragma region Getters and setters
+	//#Internal
 	void SetPressingKey(const int key, const bool pressing) noexcept;
 	const bool GetPressingKey(const int key) noexcept;
+	//#Internal
 	void SetHoldingButton(const int button, const bool holding) noexcept;
 	const bool GetHoldingButton(const int button) noexcept;
+	#pragma endregion
 }

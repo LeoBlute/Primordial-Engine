@@ -1,7 +1,5 @@
 #pragma once
 
-struct GLFWwindow;
-
 namespace GUI {
 	enum ColorStyle
 	{
@@ -20,7 +18,7 @@ namespace GUI {
 	};
 
 	//#Life cycle
-	void Init(GLFWwindow* window); //GLFWwindow nescessary for ImGui_ImplGlfw_InitForOpenGL
+	void Init(void* window); //GLFWwindow nescessary for ImGui_ImplGlfw_InitForOpenGL
 	void Terminate();
 	void NewFrame();
 	void Render();

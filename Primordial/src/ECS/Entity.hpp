@@ -19,14 +19,16 @@ namespace ECS {
 		friend void KeyEventsHandle(int key, Inputs::Type type);
 		friend void MouseButtonEventsHandle(int key, Inputs::Type type);
 		friend void ScrollEventsHandle(const float xoffset, const float yoffset);
+		friend class CPhysicsBody;
 	private:
 		Entity() = delete;
 		Entity(const Entity&) = delete;
 	public:
 		Entity(const entt::entity id) noexcept
-			:ID(id)
+			:mID(id)
 		{
-			transform = this->GetComponent<CTransform>();
+			Transform = this->GetComponent<CTransform>();
+			Identity = this->GetComponent<CIdentity>();
 		}
 		~Entity() = default;
 		bool operator==(const Entity& other) const = default;
@@ -39,11 +41,14 @@ namespace ECS {
 		virtual void OnKeyEvent(int key, Inputs::Type type) {};
 		virtual void OnMouseButtonEvent(int key, Inputs::Type type) {};
 		virtual void OnScrollEvent(float xoffset, float yoffset) {};
+
+		virtual void OnCollisionBegin(CPhysicsBody* other) {};
+		virtual void OnCollisionEnd(CPhysicsBody* other) {};
 	public:
 		template<typename T>
 		inline const bool HasComponent()
 		{
-			return Scene::mRegistry.any_of<T>(ID);
+			return Scene::mRegistry.any_of<T>(mID);
 		}
 
 		template<typename T>
@@ -52,7 +57,7 @@ namespace ECS {
 			if (!HasComponent<T>())
 				return NULL;
 
-			return &Scene::mRegistry.get<T>(ID);
+			return &Scene::mRegistry.get<T>(mID);
 		}
 
 		template<typename T>
@@ -61,25 +66,26 @@ namespace ECS {
 			if (!HasComponent<T>())
 				return;
 
-			Scene::mRegistry.remove<T>(ID);
+			Scene::mRegistry.remove<T>(mID);
 		}
 
 		template<typename T, typename... Args>
 		inline T* AddComponent(Args&&... args)
 		{
-			return &Scene::mRegistry.emplace<T>(ID, std::forward<Args>(args)...);
+			return &Scene::mRegistry.emplace<T>(mID, std::forward<Args>(args)...);
 		}
 
 		template<typename T, typename... Args>
 		inline T* AddOrReplaceComponent(Args&&... args)
 		{
-			return &Scene::mRegistry.emplace_or_replace<T>(ID, std::forward<Args>(args)...);
+			return &Scene::mRegistry.emplace_or_replace<T>(mID, std::forward<Args>(args)...);
 		}
 
 	public:
-		inline const entt::entity GetID() const { return ID; };
-		CTransform* transform;
+		inline const entt::entity GetID() const { return mID; };
+		CTransform* Transform;
+		CIdentity* Identity;
 	private:
-		entt::entity ID;
+		const entt::entity mID;
 	};
 }

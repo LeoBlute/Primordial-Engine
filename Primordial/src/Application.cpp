@@ -6,7 +6,6 @@
 #include "System/Window.hpp"
 #include "System/Inputs.hpp"
 #include "GUI/GUI.hpp"
-#include "imgui/imgui.h"
 #include "Rendering/Renderer2D.hpp"
 #include "Rendering/Shader.hpp"
 #include "entt/entt.hpp"
@@ -14,7 +13,10 @@
 #include "Rendering/Texture.hpp"
 #include "ECS/Components/CShapeRender.hpp"
 #include "ECS/Components/CTextureRender.hpp"
-#include "ECS/Components/CCollision.hpp"
+#include "ECS/Components/CPhysicsBody.hpp"
+#include "imgui/imgui.h"
+
+inline bool isColliding = false;
 
 class Other : public ECS::Entity
 {
@@ -25,7 +27,7 @@ protected:
 	}
 	void TargetUpdate() override
 	{
-		shape->Draw(transform->position, transform->rotation, transform->scale);
+		shape->Draw(Transform->position, Transform->rotation, Transform->scale);
 	}
 	void TickUpdate() override
 	{
@@ -41,35 +43,38 @@ class Col : public ECS::Entity
 protected:
 	void OnKeyEvent(int key, Inputs::Type type) override
 	{
-		if (key == INPUT_KEY_F && type == Inputs::Pressed)
+		if (key == INPUT_KEY_F && type == Inputs::Pressed && physicsBody->GetType() != CPhysicsBody::Static)
 		{
-			box->ApplyImpulse(glm::vec2(0.0f, 300.0f));
+			std::cout << "Not stoping" << std::endl;
+			physicsBody->ApplyLinearImpulseAt(glm::vec2(0.0f, 300.0f), this->Transform->position);
 		}
 	}
 	void OnCreated() override
 	{
 		shape = AddComponent<CShapeRender>(Renderer2D::Shape::Quad, glm::vec4(0.7f, 1.0f, 0.2f, 1.0f));
-		CCollision::Stats stats;
+		CPhysicsBody::Stats stats;
 		stats.density = 1.0f;
 		stats.fixedRotation = false;
-		stats.friction = 0.3f;
+		stats.friction = 1.0f;
 		stats.gravity = 1.0f;
 		stats.isTrigger = false;
 		stats.restitution = 0.3f;
-		stats.restitutionThreshold = 0.5f;
-		stats.type = CCollision::Type::Dynamic;
-		box = AddComponent<CCollision>(this, stats);
+		stats.restitutionThreshold = 1.0f;
+		stats.type = CPhysicsBody::Type::Dynamic;
+		physicsBody = AddComponent<CPhysicsBody>(this, stats);
 	}
 	void TargetUpdate() override
 	{
-		shape->Draw(transform->position, transform->rotation, transform->scale);
+		shape->Draw(Transform->position, Transform->rotation, Transform->scale);
+		const glm::vec2 velocity = physicsBody->GetLinearVelocity();
+		//std::cout << velocity.x << "," << velocity.y << std::endl;
+		//std::cout << box->GetAngularVelocity() << std::endl;
 	}
 public:
 	using Entity::Entity;
 	CShapeRender* shape;
-	CCollision* box;
+	CPhysicsBody* physicsBody;
 };
-
 
 class Player : public ECS::Entity
 {
@@ -79,17 +84,16 @@ protected:
 	{
 		texture = new Renderer2D::Texture("res/Images/f4r44t.png");
 		renderer = AddComponent<CTextureRender>(Renderer2D::Shape::Quad, texture, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-		CCollision::Stats stats;
+		CPhysicsBody::Stats stats;
 		stats.density = 1.0f;
 		stats.fixedRotation = true;
-		stats.friction = 0.3f;
+		stats.friction = 1.0f;
 		stats.gravity = 1.0f;
 		stats.isTrigger = false;
-		stats.linearDamping = 2.0f;
-		stats.restitution = 0.1f;
-		stats.restitutionThreshold = 0.5f;
-		stats.type = CCollision::Type::Dynamic;
-		physics = AddComponent<CCollision>(this, stats);
+		stats.restitution = 0.3f;
+		stats.restitutionThreshold = 1.0f;
+		stats.type = CPhysicsBody::Type::Dynamic;
+		physicsBody = AddComponent<CPhysicsBody>(this, stats);
 	};
 	void OnKeyEvent(int key, Inputs::Type type) override
 	{
@@ -97,10 +101,15 @@ protected:
 		{
 			renderer->Shape = renderer->Shape ? Renderer2D::Quad : Renderer2D::Triangle;
 		}
+		if (key == INPUT_KEY_F && type == Inputs::Pressed)
+		{
+			physicsBody->ApplyLinearImpulse(glm::vec2(0.0f, 300.0f));
+		}
 	}
 	void TargetUpdate() override
 	{
-		renderer->Draw(glm::vec2(1.0f), transform->position, transform->rotation, transform->scale);
+		renderer->Draw(glm::vec2(1.0f), Transform->position, Transform->rotation, Transform->scale);
+		isColliding = physicsBody->IsCollidingWith(other);
 	};
 	void TickUpdate() override
 	{
@@ -110,13 +119,14 @@ protected:
 		if (Inputs::GetPressingKey(INPUT_KEY_D)) { velocity.x += speed; }
 
 		const glm::vec2 impulse = velocity * 10.0f;
-		physics->ApplyImpulse(impulse);
+		physicsBody->ApplyLinearImpulse(impulse);
 	}
 public:
 	using Entity::Entity;
 public:
 	CTextureRender* renderer;
-	CCollision* physics;
+	CPhysicsBody* physicsBody;
+	CPhysicsBody* other;
 	Renderer2D::Texture* texture;
 	constexpr static inline float speed = 3.0f;
 };
@@ -143,19 +153,20 @@ int main(int argc, char* argv)
 	Inputs::Init();
 
 	//GUI
-	GUI::Init(Window::mWindow);
+	GUI::Init(Window::GetRawWindow());
 	GUI::SetColorStyle(GUI::ColorStyle::Dark);
 
 	//Scene
 	ECS::Scene::Init();
 
 	//Objs
-	Player* player = ECS::CreateEntity<Player>("Player", 1, glm::vec2(-4.0f, 5.0f), 0.0f, glm::vec2(4.0f));
-	Col* col1 = ECS::CreateEntity<Col>("Collision", 1, glm::vec2(1.0f, 8.0f), 37.0f, glm::vec2(4.0f));
-	Col* floor = ECS::CreateEntity<Col>("Collision", 1, glm::vec2(0.0f, 0.0f), 0.0f, glm::vec2(100.0f, 1.0f));
+	Player* player = ECS::CreateEntity<Player>("Player", 1, glm::vec2(-8.0f, 8.0f), 0.0f, glm::vec2(4.0f));
+	//Col * col1 = ECS::CreateEntity<Col>("col01", 1, glm::vec2(1.0f, 8.0f), 37.0f, glm::vec2(4.0f));
+	//Col* col2 = ECS::CreateEntity<Col>("Collision", 1, glm::vec2(3.0f, 50.0f), 37.0f, glm::vec2(4.0f));
+	Col* floor = ECS::CreateEntity<Col>("Floor", 1, glm::vec2(0.0f, 0.0f), 0.0f, glm::vec2(100.0f, 1.0f));
 
-	floor->box->SetType(CCollision::Static);
-	col1->box->SetType(CCollision::Dynamic);
+	player->other = floor->physicsBody;
+	floor->physicsBody->SetType(CPhysicsBody::Static);
 
 	//This is the main loop, all visible has it was supposed to be
 	double now_time = 0.0;
@@ -195,9 +206,12 @@ int main(int argc, char* argv)
 		//GUI handling
 		GUI::NewFrame();
 		
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		//std::cout << viewport->Pos.x << "," << viewport->Pos.y << std::endl;
-		
+		{
+			ImGui::Begin("Is player colliding with floor");
+			ImGui::Checkbox("IS??:", &isColliding);
+			ImGui::End();
+		}
+
 		GUI::Render();
 		Window::MakeContextCurrent();
 		

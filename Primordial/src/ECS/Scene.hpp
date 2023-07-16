@@ -4,32 +4,60 @@
 #include "Components/CTransform.hpp"
 #include "Components/CIdentity.hpp"
 
-class b2World;
-class CCollision;
+class CPhysicsBody;
 
 namespace ECS {
 	class Entity;
 	namespace Scene {
-		//Life cycle
+		#pragma region Life cycle
 		void Init();
 		void Terminate();
 		void TickUpdate();
 		void TargetUpdate();
+		#pragma endregion
 
 		inline std::vector<Entity*> mEntities;
 		inline entt::registry mRegistry;
 
+		#pragma region Utilities
+		template<typename T>
+		constexpr static inline std::vector<T*> GetEntitiesOrComponentsByType()
+		{
+			std::vector<T*> list;
+			const auto view = mRegistry.view<T>();
+			for (const entt::entity id : view)
+			{
+				list.emplace_back(&view.get<T>(id));
+			}
+			return list;
+		}
+
+		template<typename T>
+		constexpr static inline std::vector<T*> GetEntitiesOrComponentsByName(const std::string& name)
+		{
+			std::vector<T*> list;
+			const auto view = mRegistry.view<T>();
+			for (const entt::entity id : view)
+			{
+				if (!mRegistry.get<CIdentity>(id).Name.compare(name))
+					list.emplace_back(&view.get<T>(id));
+			}
+			return list;
+		}
+
+		#pragma endregion
+
 		namespace Physics {
-			//#Life cycle
+			#pragma region Life cycle
 			void Init();
 			void Terminate();
 			void Update(const float timestep);
-
-			//Getters and setters
+			#pragma endregion
+			#pragma region Getters and setters
 			const glm::vec2 GetGravity();
 			void SetGravity(const glm::vec2& value);
-			inline b2World* mWorld;
-			inline b2World* GetWorld() { return mWorld; };
+			void* GetWorld();
+			#pragma endregion
 		}
 	}
 

@@ -6,8 +6,9 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "GUI.hpp"
 
-void GUI::Init(GLFWwindow* window)
+void GUI::Init(void* window)
 {
+	GLFWwindow* _window = static_cast<GLFWwindow*>(window);
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -29,7 +30,7 @@ void GUI::Init(GLFWwindow* window)
 	}
 
 	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplGlfw_InitForOpenGL(_window, true);
 	ImGui_ImplOpenGL3_Init("#version 130");
 }
 

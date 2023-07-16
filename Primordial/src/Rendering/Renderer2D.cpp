@@ -152,8 +152,8 @@ void Renderer2D::DrawTexture(const Shape shape, Texture* texture, const glm::vec
 	const glm::vec2 final_scale = glm::vec2(scale * ScaleMultiplying);
 
 	//Check if the object is outside viewport
-	//if (CheckVisibility(position, final_scale, view_width, view_height))
-	//	return;
+	if (CheckVisibility(position * ScaleMultiplying, final_scale, view_width, view_height))
+		return;
 
 	//Values
 	constexpr float limit = 1.0f;

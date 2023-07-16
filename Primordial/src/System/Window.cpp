@@ -4,6 +4,10 @@
 #include "Window.hpp"
 #include "GLFW/include/glfw3.h"
 
+namespace Window {
+	inline GLFWwindow* mWindow;
+}
+
 void Window::Init(const char* title, int width, int height)
 {
 	//Init window system
@@ -25,7 +29,7 @@ void Window::Init(const char* title, int width, int height)
 
 	//Callback setting
 	glfwSetErrorCallback(ErrorCallback);
-	glfwSetMonitorCallback(MonitorCallback);
+	glfwSetMonitorCallback([](GLFWmonitor* monitor, int event) { MonitorCallback(monitor, event); });
 	glfwSetWindowPosCallback(mWindow, [](GLFWwindow* window, int xpos, int ypos) {
 		PosEvent.Invoke(xpos, ypos); });
 	glfwSetWindowSizeCallback(mWindow, [](GLFWwindow* window, int width, int height) {
@@ -90,6 +94,11 @@ void Window::Quit()
 	glfwSetWindowShouldClose(mWindow, 1);
 }
 
+const Window::CursorMode Window::GetCursorMode()
+{
+	return static_cast<Window::CursorMode>(glfwGetInputMode(mWindow, GLFW_CURSOR));
+}
+
 void Window::SetVSync(bool value)
 {
 	glfwSwapInterval(value);
@@ -140,12 +149,12 @@ const double Window::GetTime()
 	return glfwGetTime();
 }
 
-const int Window::GetCursorMode()
+void* Window::GetRawWindow()
 {
-	return glfwGetInputMode(mWindow, GLFW_CURSOR);
+	return mWindow;
 }
 
-void Window::SetCursorMode(CursorMode mode)
+void Window::SetCursorMode(const CursorMode mode)
 {
 	glfwSetInputMode(mWindow, GLFW_CURSOR, mode);
 }
@@ -186,7 +195,7 @@ void Window::ErrorCallback(int error_code, const char* description)
 	DEBUG_FILE_ERROR(error);
 }
 
-void Window::MonitorCallback(GLFWmonitor* monitor, int event)
+void Window::MonitorCallback(void* monitor, int event)
 {
 	
 }
