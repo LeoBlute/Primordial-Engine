@@ -4,6 +4,7 @@ Window system<br />
 Input system<br />
 Renderer2D<br />
 GUI (ImGui integration and implementation)<br />
-ECS with Scene implementation)<br />
-Framerate independant logic)<br />
+ECS with Scene implementation<br />
+2D physics(Box2d implementation)<br />
+Framerate independant logic<br />
 Framerate cap
