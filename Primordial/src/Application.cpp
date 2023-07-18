@@ -94,6 +94,8 @@ protected:
 		stats.restitutionThreshold = 1.0f;
 		stats.type = CPhysicsBody::Type::Dynamic;
 		physicsBody = AddComponent<CPhysicsBody>(this, stats);
+
+		floor = ECS::Scene::GetEntitiesOrComponentsByName<ECS::Entity>("Floor")[0];
 	};
 	void OnKeyEvent(int key, Inputs::Type type) override
 	{
@@ -109,7 +111,7 @@ protected:
 	void TargetUpdate() override
 	{
 		renderer->Draw(glm::vec2(1.0f), Transform->position, Transform->rotation, Transform->scale);
-		isColliding = physicsBody->IsCollidingWith(other);
+		isColliding = physicsBody->IsCollidingWith(floor);
 	};
 	void TickUpdate() override
 	{
@@ -126,7 +128,7 @@ public:
 public:
 	CTextureRender* renderer;
 	CPhysicsBody* physicsBody;
-	CPhysicsBody* other;
+	ECS::Entity* floor = NULL;
 	Renderer2D::Texture* texture;
 	constexpr static inline float speed = 3.0f;
 };
@@ -160,12 +162,11 @@ int main(int argc, char* argv)
 	ECS::Scene::Init();
 
 	//Objs
-	Player* player = ECS::CreateEntity<Player>("Player", 1, glm::vec2(-8.0f, 8.0f), 0.0f, glm::vec2(4.0f));
 	//Col * col1 = ECS::CreateEntity<Col>("col01", 1, glm::vec2(1.0f, 8.0f), 37.0f, glm::vec2(4.0f));
 	//Col* col2 = ECS::CreateEntity<Col>("Collision", 1, glm::vec2(3.0f, 50.0f), 37.0f, glm::vec2(4.0f));
 	Col* floor = ECS::CreateEntity<Col>("Floor", 1, glm::vec2(0.0f, 0.0f), 0.0f, glm::vec2(100.0f, 1.0f));
+	Player* player = ECS::CreateEntity<Player>("Player", 1, glm::vec2(-8.0f, 8.0f), 0.0f, glm::vec2(4.0f));
 
-	player->other = floor->physicsBody;
 	floor->physicsBody->SetType(CPhysicsBody::Static);
 
 	//This is the main loop, all visible has it was supposed to be

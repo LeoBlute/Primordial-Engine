@@ -107,7 +107,7 @@ namespace ECS
 				const b2Vec2 f_value(value.x, value.y);
 				mWorld->SetGravity(f_value);
 			}
-			void* GetWorld()
+			void* GetRawWorld()
 			{
 				return mWorld;
 			}
@@ -147,11 +147,15 @@ namespace ECS
 			}
 		}
 	}
+	CIdentity* _HackToGetIdentity(ECS::Entity* e)
+	{
+		return e->GetComponent<CIdentity>();
+	}
 	const bool LayerAlgorithm(Entity* a, Entity* b)
 	{
 		return a->GetComponent<CIdentity>()->Layer < b->GetComponent<CIdentity>()->Layer;
 	}
-	void HackOnCreated(Entity* entity)
+	void _HackOnCreated(Entity* entity)
 	{
 		entity->OnCreated();
 	}

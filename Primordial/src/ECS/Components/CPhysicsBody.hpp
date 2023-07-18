@@ -98,15 +98,15 @@ public:
 	static CPhysicsBody* GetFromBody(void* body);
 
 	#pragma region Getters and setters
-	inline const Stats& GetStats() { return mStats; };
-	inline const Type GetType() { return mStats.type; };
-	inline const bool GetIsFixedRotation() { return mStats.fixedRotation; };
-	inline const bool GetIsTrigger() { return mStats.isTrigger; };
-	inline const float GetGravity() { return mStats.gravity; };
-	inline const float GetDensity() { return mStats.density; };
-	inline const float GetRestitution() { return mStats.restitution; };
-	inline const float GetRestitutionThreshold() { return mStats.restitutionThreshold; };
-	inline const float GetFriction() { return mStats.friction; };
+	inline const Stats& GetStats() const { return mStats; };
+	inline const Type GetType() const { return mStats.type; };
+	inline const bool GetIsFixedRotation() const { return mStats.fixedRotation; };
+	inline const bool GetIsTrigger() const { return mStats.isTrigger; };
+	inline const float GetGravity() const { return mStats.gravity; };
+	inline const float GetDensity() const { return mStats.density; };
+	inline const float GetRestitution() const { return mStats.restitution; };
+	inline const float GetRestitutionThreshold() const { return mStats.restitutionThreshold; };
+	inline const float GetFriction() const { return mStats.friction; };
 	inline void SetStats(const Stats& stats) {
 		mStats = stats;
 		UpdateBodyStats();
@@ -144,6 +144,7 @@ public:
 		UpdateBodyStats();
 	}
 	const bool IsCollidingWith(CPhysicsBody* other);
+	const bool IsCollidingWith(ECS::Entity* other);
 	#pragma endregion
 private:
 	void UpdateBodyStats();

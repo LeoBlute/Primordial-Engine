@@ -8,6 +8,10 @@ class CPhysicsBody;
 
 namespace ECS {
 	class Entity;
+
+	CIdentity* _HackToGetIdentity(ECS::Entity* e);
+	void _HackOnCreated(Entity* entity);
+
 	namespace Scene {
 		#pragma region Life cycle
 		void Init();
@@ -31,6 +35,11 @@ namespace ECS {
 			}
 			return list;
 		}
+		template<>
+		constexpr static inline std::vector<ECS::Entity*> GetEntitiesOrComponentsByType<ECS::Entity>()
+		{
+			return Scene::mEntities;
+		}
 
 		template<typename T>
 		constexpr static inline std::vector<T*> GetEntitiesOrComponentsByName(const std::string& name)
@@ -39,8 +48,21 @@ namespace ECS {
 			const auto view = mRegistry.view<T>();
 			for (const entt::entity id : view)
 			{
-				if (!mRegistry.get<CIdentity>(id).Name.compare(name))
+				CIdentity& i = mRegistry.get<CIdentity>(id);
+				if (!i.Name.compare(name))
 					list.emplace_back(&view.get<T>(id));
+			}
+			return list;
+		}
+		template<>
+		constexpr static inline std::vector<ECS::Entity*> GetEntitiesOrComponentsByName<ECS::Entity>(const std::string& name)
+		{
+			std::vector<ECS::Entity*> list;
+			for (ECS::Entity* e : mEntities)
+			{
+				CIdentity* i = _HackToGetIdentity(e);
+				if(!i->Name.compare(name))
+					list.emplace_back(e);
 			}
 			return list;
 		}
@@ -56,13 +78,12 @@ namespace ECS {
 			#pragma region Getters and setters
 			const glm::vec2 GetGravity();
 			void SetGravity(const glm::vec2& value);
-			void* GetWorld();
+			void* GetRawWorld();
 			#pragma endregion
 		}
 	}
 
 	const bool LayerAlgorithm(Entity* a, Entity* b);
-	void HackOnCreated(Entity* entity);
 
 	//This function creates a entity correctly,it is a friend of class Entity
 	template<typename T>
@@ -76,7 +97,7 @@ namespace ECS {
 		reg.emplace<CTransform>(id, position, scale, rotation);
 		reg.emplace<CIdentity>(id, name, layer);
 		T* entity = &reg.emplace<T>(id, id);
-		HackOnCreated(entity);
+		_HackOnCreated(entity);
 		Scene::mEntities.emplace_back(entity);
 		//Maybe when the antichrist comes this code will be acceptable
 		std::sort(Scene::mEntities.begin(), Scene::mEntities.end(), LayerAlgorithm);

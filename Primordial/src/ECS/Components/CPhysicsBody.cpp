@@ -1,3 +1,4 @@
+#include <memory>
 #include <unordered_map>
 #include "box2d/box2d.h"
 #include "PMath.h"
@@ -9,7 +10,7 @@
 
 //Quickly define body in function
 #define BDEF b2Body* body = static_cast<b2Body*>(mBody)
-#define WDEF b2World* world = static_cast<b2World*>(ECS::Scene::Physics::GetWorld());
+#define WDEF b2World* world = static_cast<b2World*>(ECS::Scene::Physics::GetRawWorld());
 
 CPhysicsBody::CPhysicsBody(ECS::Entity* assignedEntity, const Stats& stats)
 {
@@ -221,6 +222,14 @@ const bool CPhysicsBody::IsCollidingWith(CPhysicsBody* other)
 	return mCollidings[other];
 }
 
+const bool CPhysicsBody::IsCollidingWith(ECS::Entity* other)
+{
+	if (!other || !(other->HasComponent<CPhysicsBody>()))
+		return false;
+
+	return mCollidings[other->GetComponent<CPhysicsBody>()];
+}
+
 void CPhysicsBody::UpdateBodyStats()
 {
 	b2Body* body = static_cast<b2Body*>(mBody);
@@ -242,7 +251,6 @@ void CPhysicsBody::SetCollidingWith(CPhysicsBody* col, const bool is)
 {
 	if (mCollidings[col] != is)
 	{
-		std::cout << is << std::endl;
 		mCollidings[col] = is;
 	}
 }

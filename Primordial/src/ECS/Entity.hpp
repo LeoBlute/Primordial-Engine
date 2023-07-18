@@ -15,7 +15,7 @@ namespace ECS {
 		friend void Scene::Terminate();
 		friend void Scene::TickUpdate();
 		friend void Scene::TargetUpdate();
-		friend void HackOnCreated(Entity* entity);
+		friend void _HackOnCreated(Entity* entity);
 		friend void KeyEventsHandle(int key, Inputs::Type type);
 		friend void MouseButtonEventsHandle(int key, Inputs::Type type);
 		friend void ScrollEventsHandle(const float xoffset, const float yoffset);
@@ -46,7 +46,7 @@ namespace ECS {
 		virtual void OnCollisionEnd(CPhysicsBody* other) {};
 	public:
 		template<typename T>
-		inline const bool HasComponent()
+		inline bool HasComponent()
 		{
 			return Scene::mRegistry.any_of<T>(mID);
 		}
