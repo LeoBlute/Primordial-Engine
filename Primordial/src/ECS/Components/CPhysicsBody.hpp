@@ -143,6 +143,8 @@ public:
 		mStats.friction = friction;
 		UpdateBodyStats();
 	}
+	inline ECS::Entity* GetOwner() { return mAssignedEntity; };
+	inline CTransform* GetTransform() { return mAssignedTransform; };
 	const bool IsCollidingWith(CPhysicsBody* other);
 	const bool IsCollidingWith(ECS::Entity* other);
 	#pragma endregion

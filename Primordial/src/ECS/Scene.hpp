@@ -73,8 +73,21 @@ namespace ECS {
 			#pragma region Life cycle
 			void Init();
 			void Terminate();
-			void Update(const float timestep);
+			void Step(const float timestep);
 			#pragma endregion
+	#pragma region Utilities
+			struct RaycastResult
+			{
+				bool hasHit;               // Raycast has hit a body
+				CPhysicsBody* physicsBody; // The CPhysicsBody that was hit
+				glm::vec2 point;           // The point of intersection
+				glm::vec2 normal;          // The surface normal at the point of intersection
+				float fraction;            // The fraction along the ray where the intersection occurred
+			};
+
+			const RaycastResult Raycast(const glm::vec2& pointA, const glm::vec2& pointB);
+
+	#pragma endregion
 			#pragma region Getters and setters
 			const glm::vec2 GetGravity();
 			void SetGravity(const glm::vec2& value);
@@ -107,3 +120,5 @@ namespace ECS {
 	//This function deletes a entity correctly,it is a friend of class Entity
 	void DeleteEntity(Entity* entity);
 }
+
+typedef ECS::Scene::Physics::RaycastResult RaycastResult;

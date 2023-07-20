@@ -27,8 +27,8 @@ namespace ECS {
 		Entity(const entt::entity id) noexcept
 			:mID(id)
 		{
-			Transform = this->GetComponent<CTransform>();
-			Identity = this->GetComponent<CIdentity>();
+			transform = this->GetComponent<CTransform>();
+			identity = this->GetComponent<CIdentity>();
 		}
 		~Entity() = default;
 		bool operator==(const Entity& other) const = default;
@@ -83,8 +83,8 @@ namespace ECS {
 
 	public:
 		inline const entt::entity GetID() const { return mID; };
-		CTransform* Transform;
-		CIdentity* Identity;
+		CTransform* transform;
+		CIdentity* identity;
 	private:
 		const entt::entity mID;
 	};

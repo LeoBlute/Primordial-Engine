@@ -27,7 +27,7 @@ protected:
 	}
 	void TargetUpdate() override
 	{
-		shape->Draw(Transform->position, Transform->rotation, Transform->scale);
+		shape->Draw(transform->position, transform->rotation, transform->scale);
 	}
 	void TickUpdate() override
 	{
@@ -46,7 +46,7 @@ protected:
 		if (key == INPUT_KEY_F && type == Inputs::Pressed && physicsBody->GetType() != CPhysicsBody::Static)
 		{
 			std::cout << "Not stoping" << std::endl;
-			physicsBody->ApplyLinearImpulseAt(glm::vec2(0.0f, 300.0f), this->Transform->position);
+			physicsBody->ApplyLinearImpulseAt(glm::vec2(0.0f, 300.0f), this->transform->position);
 		}
 	}
 	void OnCreated() override
@@ -65,10 +65,8 @@ protected:
 	}
 	void TargetUpdate() override
 	{
-		shape->Draw(Transform->position, Transform->rotation, Transform->scale);
+		shape->Draw(transform->position, transform->rotation, transform->scale);
 		const glm::vec2 velocity = physicsBody->GetLinearVelocity();
-		//std::cout << velocity.x << "," << velocity.y << std::endl;
-		//std::cout << box->GetAngularVelocity() << std::endl;
 	}
 public:
 	using Entity::Entity;
@@ -90,7 +88,7 @@ protected:
 		stats.friction = 1.0f;
 		stats.gravity = 1.0f;
 		stats.isTrigger = false;
-		stats.restitution = 0.3f;
+		stats.restitution = 0.0f;
 		stats.restitutionThreshold = 1.0f;
 		stats.type = CPhysicsBody::Type::Dynamic;
 		physicsBody = AddComponent<CPhysicsBody>(this, stats);
@@ -99,24 +97,33 @@ protected:
 	};
 	void OnKeyEvent(int key, Inputs::Type type) override
 	{
-		if (key == INPUT_KEY_SPACE && type == Inputs::Pressed)
+		if (key == INPUT_KEY_R && type == Inputs::Pressed)
+		{
+			const glm::vec2 endPoint(transform->position - glm::vec2(0.0f, 4.0f));
+			const RaycastResult result = ECS::Scene::Physics::Raycast(transform->position, endPoint);
+			if(result.hasHit)
+				std::cout << (result.physicsBody->GetOwner()->identity->Name) << std::endl;
+		}
+		if (key == INPUT_KEY_F && type == Inputs::Pressed)
 		{
 			renderer->Shape = renderer->Shape ? Renderer2D::Quad : Renderer2D::Triangle;
 		}
-		if (key == INPUT_KEY_F && type == Inputs::Pressed)
+		if ((key == INPUT_KEY_SPACE || key == INPUT_KEY_W) &&
+			type == Inputs::Pressed && physicsBody->IsCollidingWith(floor))
 		{
 			physicsBody->ApplyLinearImpulse(glm::vec2(0.0f, 300.0f));
 		}
 	}
 	void TargetUpdate() override
 	{
-		renderer->Draw(glm::vec2(1.0f), Transform->position, Transform->rotation, Transform->scale);
+		renderer->Draw(glm::vec2(1.0f), transform->position, transform->rotation, transform->scale);
+		const glm::vec2 endPoint(transform->position - glm::vec2(0.0f, 4.0f));
+		renderer->Draw(glm::vec2(1.0f), endPoint, transform->rotation, glm::vec2(1.0f));
 		isColliding = physicsBody->IsCollidingWith(floor);
 	};
 	void TickUpdate() override
 	{
 		glm::vec2 velocity = glm::vec2(0.0f, 0.0f);
-		if (Inputs::GetPressingKey(INPUT_KEY_W)) { velocity.y += speed; }
 		if (Inputs::GetPressingKey(INPUT_KEY_A)) { velocity.x -= speed; }
 		if (Inputs::GetPressingKey(INPUT_KEY_D)) { velocity.x += speed; }
 

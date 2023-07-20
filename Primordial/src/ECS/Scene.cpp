@@ -57,6 +57,28 @@ namespace ECS
 					b->SetCollidingWith(a, false);
 				}
 			};
+
+			class RaycastCallback : public b2RayCastCallback
+			{
+				virtual float ReportFixture(b2Fixture* fixture, const b2Vec2& point, const b2Vec2& normal, float fraction) override
+				{
+					if (fraction < closestFraction)
+					{
+						const glm::vec2 _point(point.x, point.y);
+						const glm::vec2 _normal(normal.x, normal.y);
+						CPhysicsBody* body = CPhysicsBody::GetFromBody(fixture->GetBody());
+						result = { true, body, _point, _normal, fraction };
+						//std::cout << body->GetOwner()->identity->Name << std::endl;
+					}
+
+					return 1.0f;
+				}
+
+			public:
+				RaycastResult result{ false, NULL, glm::vec2(0.0f), glm::vec2(0.0f), 0.0f };
+				float closestFraction = 1.0f;
+			};
+
 			inline ContactListener* contactor;
 
 			void Init()
@@ -76,7 +98,7 @@ namespace ECS
 				delete contactor;
 			}
 
-			void Update(const float timestep)
+			void Step(const float timestep)
 			{
 				const int velocityIterations = 6;
 				const int positionIterations = 2;
@@ -95,6 +117,16 @@ namespace ECS
 					CPhysicsBody& col = view.get<CPhysicsBody>(id);
 					col.PostStep();
 				}
+			}
+
+			const RaycastResult Raycast(const glm::vec2& pointA, const glm::vec2& pointB)
+			{
+				RaycastCallback raycastor;
+				const b2Vec2 _pointA(pointA.x, pointA.y);
+				const b2Vec2 _pointB(pointB.x, pointB.y);
+				mWorld->RayCast(&raycastor, _pointA, _pointB);
+
+				return raycastor.result;
 			}
 			
 			const glm::vec2 GetGravity()
@@ -133,7 +165,7 @@ namespace ECS
 		}
 		void TickUpdate()
 		{
-			Physics::Update(1.0f / 60.0f);
+			Physics::Step(1.0f / 60.0f);
 			for (Entity* e : mEntities)
 			{
 				e->TickUpdate();

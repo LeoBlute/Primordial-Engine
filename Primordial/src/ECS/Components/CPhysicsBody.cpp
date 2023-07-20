@@ -7,7 +7,6 @@
 #include "ECS/Entity.hpp"
 #include "ECS/Components/CTransform.hpp"
 
-
 //Quickly define body in function
 #define BDEF b2Body* body = static_cast<b2Body*>(mBody)
 #define WDEF b2World* world = static_cast<b2World*>(ECS::Scene::Physics::GetRawWorld());
@@ -56,6 +55,8 @@ CPhysicsBody::CPhysicsBody(ECS::Entity* assignedEntity, const Stats& stats)
 
 	//Fixture creation
 	body->CreateFixture(&fixtureDef);
+	b2RayCastInput input;
+	b2RayCastOutput output;
 }
 
 CPhysicsBody::~CPhysicsBody()
