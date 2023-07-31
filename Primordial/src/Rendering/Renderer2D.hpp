@@ -7,8 +7,8 @@ namespace Renderer2D
 
 	enum Shape
 	{
-		Quad,
-		Triangle
+		Quad     = 0,
+		Triangle = 1
 	};
 
 	enum BitMask
@@ -22,9 +22,7 @@ namespace Renderer2D
 	void Init(void* procAdress);
 	void Terminate();
 	void Clear(const glm::vec4& color, const unsigned int mask);
-	void DrawShape(const Shape shape, const glm::vec2& position, const glm::vec2& scale,
-		const float rotation, const glm::vec4& color);
-	void DrawTexture(const Shape shape, Texture* texture, const glm::vec2& repetition,
+	void Draw(const Shape shape, Texture* texture, const glm::vec2& repetition,
 		const glm::vec2& position, const glm::vec2& scale, const float rotation, const glm::vec4& color);
 
 	//Checks if object is visible on screen/viewport

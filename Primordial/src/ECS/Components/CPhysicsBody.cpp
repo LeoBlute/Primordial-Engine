@@ -55,8 +55,6 @@ CPhysicsBody::CPhysicsBody(ECS::Entity* assignedEntity, const Stats& stats)
 
 	//Fixture creation
 	body->CreateFixture(&fixtureDef);
-	b2RayCastInput input;
-	b2RayCastOutput output;
 }
 
 CPhysicsBody::~CPhysicsBody()
@@ -65,30 +63,6 @@ CPhysicsBody::~CPhysicsBody()
 	WDEF;
 	world->DestroyBody(body);
 	mBody = nullptr;
-}
-
-void CPhysicsBody::PreStep()
-{
-	BDEF;
-	const glm::vec2 pos = mAssignedTransform->position;
-	const glm::vec2 size = mAssignedTransform->scale;
-	const b2Vec2 position = b2Vec2(pos.x, pos.y);
-	const float angle = glm::radians(mAssignedTransform->rotation);
-
-	constexpr float v_mult = 0.5f;
-	b2Shape* shape = body->GetFixtureList()->GetShape();
-	static_cast<b2PolygonShape*>(shape)->SetAsBox(size.x * v_mult, size.y * v_mult);
-	body->SetTransform(position, angle);
-}
-
-void CPhysicsBody::PostStep()
-{
-	BDEF;
-	const b2Vec2 pos = body->GetPosition();
-	const glm::vec2 position = glm::vec2(pos.x, pos.y);
-	const float angle = glm::degrees(body->GetAngle());
-	mAssignedTransform->position = position;
-	mAssignedTransform->rotation = angle;
 }
 
 void CPhysicsBody::ApplyLinearImpulse(const glm::vec2& impulse)

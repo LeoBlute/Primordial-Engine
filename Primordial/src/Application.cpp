@@ -11,9 +11,8 @@
 #include "entt/entt.hpp"
 #include "ECS/Entity.hpp"
 #include "Rendering/Texture.hpp"
-#include "ECS/Components/CShapeRender.hpp"
-#include "ECS/Components/CTextureRender.hpp"
 #include "ECS/Components/CPhysicsBody.hpp"
+#include "ECS/Components/CRenderer.hpp"
 #include "imgui/imgui.h"
 
 inline bool isColliding = false;
@@ -23,19 +22,14 @@ class Other : public ECS::Entity
 protected:
 	void OnCreated() override
 	{
-		shape = AddComponent<CShapeRender>(Renderer2D::Shape::Quad, glm::vec4(0.2f, 0.4f, 1.0f, 1.0f));
-	}
-	void TargetUpdate() override
-	{
-		shape->Draw(transform->position, transform->rotation, transform->scale);
-	}
-	void TickUpdate() override
-	{
-
+		CRenderer::ShapeDef rdef;
+		rdef.color = glm::vec4(0.2f, 0.4f, 1.0f, 1.0f);
+		rdef.shape = CRenderer::Quad;
+		renderer = AddComponent<CRenderer>(this, rdef, 0);
 	}
 public:
 	using Entity::Entity;
-	CShapeRender* shape;
+	CRenderer* renderer;
 };
 
 class Col : public ECS::Entity
@@ -51,7 +45,11 @@ protected:
 	}
 	void OnCreated() override
 	{
-		shape = AddComponent<CShapeRender>(Renderer2D::Shape::Quad, glm::vec4(0.7f, 1.0f, 0.2f, 1.0f));
+		CRenderer::ShapeDef rdef;
+		rdef.color = glm::vec4(0.7f, 1.0f, 0.2f, 1.0f);
+		rdef.shape = CRenderer::Quad;
+		renderer = AddComponent<CRenderer>(this, rdef, 0);
+
 		CPhysicsBody::Stats stats;
 		stats.density = 1.0f;
 		stats.fixedRotation = false;
@@ -65,12 +63,11 @@ protected:
 	}
 	void TargetUpdate() override
 	{
-		shape->Draw(transform->position, transform->rotation, transform->scale);
 		const glm::vec2 velocity = physicsBody->GetLinearVelocity();
 	}
 public:
 	using Entity::Entity;
-	CShapeRender* shape;
+	CRenderer* renderer;
 	CPhysicsBody* physicsBody;
 };
 
@@ -80,8 +77,15 @@ private:
 protected:
 	void OnCreated() override
 	{
+
 		texture = new Renderer2D::Texture("res/Images/f4r44t.png");
-		renderer = AddComponent<CTextureRender>(Renderer2D::Shape::Quad, texture, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		CRenderer::TexDef rdef;
+		rdef.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		rdef.shape = CRenderer::Quad;
+		rdef.texRepetition = glm::vec2(1.0f, 1.0f);
+		rdef.texture = texture;
+		renderer = AddComponent<CRenderer>(this, rdef, 1);
+
 		CPhysicsBody::Stats stats;
 		stats.density = 1.0f;
 		stats.fixedRotation = true;
@@ -100,13 +104,13 @@ protected:
 		if (key == INPUT_KEY_R && type == Inputs::Pressed)
 		{
 			const glm::vec2 endPoint(transform->position - glm::vec2(0.0f, 4.0f));
-			const RaycastResult result = ECS::Scene::Physics::Raycast(transform->position, endPoint);
+			const RaycastResult result = ECS::Scene::Physics::Raycast(transform->position, transform->position);
 			if(result.hasHit)
-				std::cout << (result.physicsBody->GetOwner()->identity->Name) << std::endl;
+				std::cout << (result.physicsBody->GetOwner()->identity->name) << std::endl;
 		}
 		if (key == INPUT_KEY_F && type == Inputs::Pressed)
 		{
-			renderer->Shape = renderer->Shape ? Renderer2D::Quad : Renderer2D::Triangle;
+			renderer->data.shape = renderer->data.shape ? CRenderer::Quad : CRenderer::Triangle;
 		}
 		if ((key == INPUT_KEY_SPACE || key == INPUT_KEY_W) &&
 			type == Inputs::Pressed && physicsBody->IsCollidingWith(floor))
@@ -116,9 +120,7 @@ protected:
 	}
 	void TargetUpdate() override
 	{
-		renderer->Draw(glm::vec2(1.0f), transform->position, transform->rotation, transform->scale);
 		const glm::vec2 endPoint(transform->position - glm::vec2(0.0f, 4.0f));
-		renderer->Draw(glm::vec2(1.0f), endPoint, transform->rotation, glm::vec2(1.0f));
 		isColliding = physicsBody->IsCollidingWith(floor);
 	};
 	void TickUpdate() override
@@ -133,10 +135,11 @@ protected:
 public:
 	using Entity::Entity;
 public:
-	CTextureRender* renderer;
+	//CTextureRender* renderer;
 	CPhysicsBody* physicsBody;
 	ECS::Entity* floor = NULL;
 	Renderer2D::Texture* texture;
+	CRenderer* renderer;
 	constexpr static inline float speed = 3.0f;
 };
 
@@ -169,10 +172,8 @@ int main(int argc, char* argv)
 	ECS::Scene::Init();
 
 	//Objs
-	//Col * col1 = ECS::CreateEntity<Col>("col01", 1, glm::vec2(1.0f, 8.0f), 37.0f, glm::vec2(4.0f));
-	//Col* col2 = ECS::CreateEntity<Col>("Collision", 1, glm::vec2(3.0f, 50.0f), 37.0f, glm::vec2(4.0f));
-	Col* floor = ECS::CreateEntity<Col>("Floor", 1, glm::vec2(0.0f, 0.0f), 0.0f, glm::vec2(100.0f, 1.0f));
-	Player* player = ECS::CreateEntity<Player>("Player", 1, glm::vec2(-8.0f, 8.0f), 0.0f, glm::vec2(4.0f));
+	Col* floor = ECS::CreateEntity<Col>("Floor", glm::vec2(0.0f, 0.0f), 0.0f, glm::vec2(100.0f, 1.0f));
+	Player* player = ECS::CreateEntity<Player>("Player", glm::vec2(-8.0f, 8.0f), 0.0f, glm::vec2(4.0f));
 
 	floor->physicsBody->SetType(CPhysicsBody::Static);
 

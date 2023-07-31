@@ -5,9 +5,10 @@
 #include "Entity.hpp"
 #include "Scene.hpp"
 #include "System/Inputs.hpp"
-#include "Rendering/Renderer2D.hpp"
 #include "ECS/Components/CPhysicsBody.hpp"
 #include "VUtils/DebugUtils.hpp"
+#include "Components/CRenderer.hpp"
+#include "Rendering/Renderer2D.hpp"
 
 namespace ECS
 {
@@ -106,16 +107,31 @@ namespace ECS
 				const auto view = mRegistry.view<CPhysicsBody>();
 				for (const entt::entity id : view)
 				{
-					CPhysicsBody& col = view.get<CPhysicsBody>(id);
-					col.PreStep();
+					CPhysicsBody& body = view.get<CPhysicsBody>(id);
+					CTransform* transform = body.mAssignedTransform;
+					const glm::vec2 pos = transform->position;
+					const glm::vec2 size = transform->scale;
+					const b2Vec2 position = b2Vec2(pos.x, pos.y);
+					const float angle = glm::radians(transform->rotation);
+					constexpr float v_mult = 0.5f;
+					b2Body* raw_body = static_cast<b2Body*>(body.mBody);
+					b2Shape* shape = raw_body->GetFixtureList()->GetShape();
+					static_cast<b2PolygonShape*>(shape)->SetAsBox(size.x * v_mult, size.y * v_mult);
+					raw_body->SetTransform(position, angle);
 				}
 
 				mWorld->Step(timestep, velocityIterations, positionIterations);
 
 				for (const entt::entity id : view)
 				{
-					CPhysicsBody& col = view.get<CPhysicsBody>(id);
-					col.PostStep();
+					CPhysicsBody& body = view.get<CPhysicsBody>(id);
+					CTransform* transform = body.mAssignedTransform;
+					b2Body* raw_body = static_cast<b2Body*>(body.mBody);
+					const b2Vec2 pos = raw_body->GetPosition();
+					const glm::vec2 position = glm::vec2(pos.x, pos.y);
+					const float angle = glm::degrees(raw_body->GetAngle());
+					transform->position = position;
+					transform->rotation = angle;
 				}
 			}
 
@@ -161,6 +177,7 @@ namespace ECS
 				e->OnDestroyed();
 			}
 			mRegistry.clear();
+			mEntityMap.clear();
 			Physics::Terminate();
 		}
 		void TickUpdate()
@@ -177,15 +194,33 @@ namespace ECS
 			{
 				e->TargetUpdate();
 			}
+			const auto view = mRegistry.view<CRenderer>();
+			std::vector<CRenderer*> iterator;
+			iterator.reserve(100);
+			for (const entt::entity e : view)
+			{
+				iterator.emplace_back(&mRegistry.get<CRenderer>(e));
+			}
+			std::sort(iterator.begin(), iterator.end(), [](CRenderer* r1, CRenderer* r2) {
+				return r1->layer < r2->layer;
+				});
+
+			for (CRenderer* r : iterator)
+			{
+				const CRenderer::Data data = r->data;
+				const auto shape = static_cast<Renderer2D::Shape>(data.shape);
+				const glm::vec2 position = r->mAssignedTransform->position;
+				const float rotation = r->mAssignedTransform->rotation;
+				const glm::vec2 size = r->mAssignedTransform->scale;
+				Renderer2D::Draw(shape, data.texture, data.texRepetition, position,
+					size, rotation, data.color);
+			}
+
 		}
 	}
 	CIdentity* _HackToGetIdentity(ECS::Entity* e)
 	{
 		return e->GetComponent<CIdentity>();
-	}
-	const bool LayerAlgorithm(Entity* a, Entity* b)
-	{
-		return a->GetComponent<CIdentity>()->Layer < b->GetComponent<CIdentity>()->Layer;
 	}
 	void _HackOnCreated(Entity* entity)
 	{
@@ -195,13 +230,16 @@ namespace ECS
 	{
 		if (!entity)
 			return;
+
 		const auto it = std::find(Scene::mEntities.begin(), Scene::mEntities.end(), entity);
 		if(it != Scene::mEntities.end())
 		{
 			Scene::mEntities.erase(it);
 			//I don't know why or how there are 2 destructors being called because that stupid library is classist and works for some other don't
 			const entt::entity id = entity->GetID();
+			const UUID uuid = entity->identity->uuid;
 			entity->OnDestroyed();
+			Scene::mEntityMap.erase(uuid);
 			Scene::mRegistry.destroy(id);
 		}
 	}

@@ -3,8 +3,11 @@
 #include "entt/entt.hpp"
 #include "Components/CTransform.hpp"
 #include "Components/CIdentity.hpp"
+#include "System/UUID.hpp"
 
 class CPhysicsBody;
+
+class CRenderer;
 
 namespace ECS {
 	class Entity;
@@ -21,6 +24,7 @@ namespace ECS {
 		#pragma endregion
 
 		inline std::vector<Entity*> mEntities;
+		inline std::unordered_map<UUID, entt::entity> mEntityMap;
 		inline entt::registry mRegistry;
 
 		#pragma region Utilities
@@ -49,7 +53,7 @@ namespace ECS {
 			for (const entt::entity id : view)
 			{
 				CIdentity& i = mRegistry.get<CIdentity>(id);
-				if (!i.Name.compare(name))
+				if (!i.name.compare(name))
 					list.emplace_back(&view.get<T>(id));
 			}
 			return list;
@@ -61,10 +65,19 @@ namespace ECS {
 			for (ECS::Entity* e : mEntities)
 			{
 				CIdentity* i = _HackToGetIdentity(e);
-				if(!i->Name.compare(name))
+				if(!i->name.compare(name))
 					list.emplace_back(e);
 			}
 			return list;
+		}
+		
+		template<typename T>
+		constexpr static inline T* GetEntityOrComponentByUUID(const UUID uuid)
+		{
+			if (mEntityMap.find(uuid) != mEntityMap.end())
+				return &mRegistry.get<T>(mEntityMap[uuid]);
+
+				return NULL;
 		}
 
 		#pragma endregion
@@ -75,7 +88,7 @@ namespace ECS {
 			void Terminate();
 			void Step(const float timestep);
 			#pragma endregion
-	#pragma region Utilities
+			#pragma region Utilities
 			struct RaycastResult
 			{
 				bool hasHit;               // Raycast has hit a body
@@ -87,7 +100,7 @@ namespace ECS {
 
 			const RaycastResult Raycast(const glm::vec2& pointA, const glm::vec2& pointB);
 
-	#pragma endregion
+			#pragma endregion
 			#pragma region Getters and setters
 			const glm::vec2 GetGravity();
 			void SetGravity(const glm::vec2& value);
@@ -96,11 +109,9 @@ namespace ECS {
 		}
 	}
 
-	const bool LayerAlgorithm(Entity* a, Entity* b);
-
 	//This function creates a entity correctly,it is a friend of class Entity
 	template<typename T>
-	constexpr static inline T* CreateEntity(const std::string& name, unsigned int layer = 0,
+	constexpr static inline T* CreateEntity(const std::string& name,
 		const glm::vec2& position = glm::vec2(0.0f, 0.0f), const float rotation = 0.0f,
 		const glm::vec2& scale = glm::vec2(1.0f, 1.0f))
 	{
@@ -108,12 +119,12 @@ namespace ECS {
 		const entt::entity id = reg.create();
 		//Creates some essential components for the entity
 		reg.emplace<CTransform>(id, position, scale, rotation);
-		reg.emplace<CIdentity>(id, name, layer);
+		reg.emplace<CIdentity>(id, name, UUID());
 		T* entity = &reg.emplace<T>(id, id);
-		_HackOnCreated(entity);
+		const UUID uuid = entity->identity->uuid;
+		Scene::mEntityMap[uuid] = id;
 		Scene::mEntities.emplace_back(entity);
-		//Maybe when the antichrist comes this code will be acceptable
-		std::sort(Scene::mEntities.begin(), Scene::mEntities.end(), LayerAlgorithm);
+		_HackOnCreated(entity);
 		return entity;
 	};
 

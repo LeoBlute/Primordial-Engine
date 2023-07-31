@@ -111,14 +111,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\ECS\Components\CShapeRender.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="src\ECS\Components\CTextureRender.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="src\ECS\Entity.cpp" />
     <ClCompile Include="src\ECS\Scene.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -144,6 +136,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\GUI\GUI.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\System\UUID.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -372,8 +368,7 @@
     <ClInclude Include="src\ECS\Components\Component.hpp" />
     <ClInclude Include="src\ECS\Components\CPhysicsBody.hpp" />
     <ClInclude Include="src\ECS\Components\CIdentity.hpp" />
-    <ClInclude Include="src\ECS\Components\CShapeRender.hpp" />
-    <ClInclude Include="src\ECS\Components\CTextureRender.hpp" />
+    <ClInclude Include="src\ECS\Components\CRenderer.hpp" />
     <ClInclude Include="src\ECS\Components\CTransform.hpp" />
     <ClInclude Include="src\ECS\Entity.hpp" />
     <ClInclude Include="src\ECS\Scene.hpp" />
@@ -384,6 +379,7 @@
     <ClInclude Include="src\Rendering\Texture.hpp" />
     <ClInclude Include="src\System\Inputs.hpp" />
     <ClInclude Include="src\GUI\GUI.hpp" />
+    <ClInclude Include="src\System\UUID.hpp" />
     <ClInclude Include="src\VUtils\DebugUtils.hpp" />
     <ClInclude Include="src\VUtils\Events.hpp" />
     <ClInclude Include="src\VUtils\FileUtils.hpp" />

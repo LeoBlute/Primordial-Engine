@@ -129,12 +129,7 @@ void Renderer2D::Clear(const glm::vec4& color, const unsigned int mask)
 	glClear(mask);
 }
 
-void Renderer2D::DrawShape(const Shape shape, const glm::vec2& position, const glm::vec2& scale, const float rotation, const glm::vec4& color)
-{
-	DrawTexture(shape, NULL, glm::vec2(1.0f), position, scale, rotation, color);
-}
-
-void Renderer2D::DrawTexture(const Shape shape, Texture* texture, const glm::vec2& repetition, const glm::vec2& position, const glm::vec2& scale, const float rotation, const glm::vec4& color)
+void Renderer2D::Draw(const Shape shape, Texture* texture, const glm::vec2& repetition, const glm::vec2& position, const glm::vec2& scale, const float rotation, const glm::vec4& color)
 {
 	const bool has_texture = texture != NULL;
 

@@ -1,16 +1,18 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include "System/UUID.hpp"
 
 class CIdentity
 {
 public:
 	CIdentity() = delete;
 	CIdentity(const CIdentity&) = delete;
-	CIdentity(const std::string& name, unsigned int layer)
-		: Name(name), Layer(layer) {}
+	CIdentity(const std::string& _name, const UUID _uuid)
+		: name(_name), uuid(_uuid) {}
 	~CIdentity() = default;
 public:
-	std::string Name;
-	unsigned int Layer;
+	std::string name;
+	const UUID uuid;
 };

@@ -8,7 +8,7 @@ namespace ECS {
 	class Entity;
 	namespace Scene {
 		namespace Physics {
-			void Update(const float timestep);
+			void Step(const float timestep);
 			class ContactListener;
 		}
 	}
@@ -19,7 +19,7 @@ namespace ECS {
 class CPhysicsBody
 {
 private:
-	friend void ECS::Scene::Physics::Update(const float timeStep);
+	friend void ECS::Scene::Physics::Step(const float timeStep);
 	friend ECS::Scene::Physics::ContactListener;
 public:
 	enum Type
@@ -76,8 +76,6 @@ public:
 	#pragma region Life cycle
 	CPhysicsBody(ECS::Entity* assignedEntity, const Stats& stats);
 	~CPhysicsBody();
-	void PreStep();
-	void PostStep();
 	#pragma endregion
 
 	#pragma region Velocity Related
