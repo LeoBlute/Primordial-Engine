@@ -108,16 +108,19 @@ namespace ECS
 				for (const entt::entity id : view)
 				{
 					CPhysicsBody& body = view.get<CPhysicsBody>(id);
-					CTransform* transform = body.mAssignedTransform;
-					const glm::vec2 pos = transform->position;
-					const glm::vec2 size = transform->scale;
-					const b2Vec2 position = b2Vec2(pos.x, pos.y);
-					const float angle = glm::radians(transform->rotation);
-					constexpr float v_mult = 0.5f;
-					b2Body* raw_body = static_cast<b2Body*>(body.mBody);
-					b2Shape* shape = raw_body->GetFixtureList()->GetShape();
-					static_cast<b2PolygonShape*>(shape)->SetAsBox(size.x * v_mult, size.y * v_mult);
-					raw_body->SetTransform(position, angle);
+					if (body.mEnable)
+					{
+						CTransform* transform = body.mAssignedTransform;
+						const glm::vec2 pos = transform->position;
+						const glm::vec2 size = transform->scale;
+						const b2Vec2 position = b2Vec2(pos.x, pos.y);
+						const float angle = glm::radians(transform->rotation);
+						constexpr float v_mult = 0.5f;
+						b2Body* raw_body = static_cast<b2Body*>(body.mBody);
+						b2Shape* shape = raw_body->GetFixtureList()->GetShape();
+						static_cast<b2PolygonShape*>(shape)->SetAsBox(size.x * v_mult, size.y * v_mult);
+						raw_body->SetTransform(position, angle);
+					}
 				}
 
 				mWorld->Step(timestep, velocityIterations, positionIterations);
@@ -125,13 +128,16 @@ namespace ECS
 				for (const entt::entity id : view)
 				{
 					CPhysicsBody& body = view.get<CPhysicsBody>(id);
-					CTransform* transform = body.mAssignedTransform;
-					b2Body* raw_body = static_cast<b2Body*>(body.mBody);
-					const b2Vec2 pos = raw_body->GetPosition();
-					const glm::vec2 position = glm::vec2(pos.x, pos.y);
-					const float angle = glm::degrees(raw_body->GetAngle());
-					transform->position = position;
-					transform->rotation = angle;
+					if (body.mEnable)
+					{
+						CTransform* transform = body.mAssignedTransform;
+						b2Body* raw_body = static_cast<b2Body*>(body.mBody);
+						const b2Vec2 pos = raw_body->GetPosition();
+						const glm::vec2 position = glm::vec2(pos.x, pos.y);
+						const float angle = glm::degrees(raw_body->GetAngle());
+						transform->position = position;
+						transform->rotation = angle;
+					}
 				}
 			}
 
@@ -207,13 +213,16 @@ namespace ECS
 
 			for (CRenderer* r : iterator)
 			{
-				const CRenderer::Data data = r->data;
-				const auto shape = static_cast<Renderer2D::Shape>(data.shape);
-				const glm::vec2 position = r->mAssignedTransform->position;
-				const float rotation = r->mAssignedTransform->rotation;
-				const glm::vec2 size = r->mAssignedTransform->scale;
-				Renderer2D::Draw(shape, data.texture, data.texRepetition, position,
-					size, rotation, data.color);
+				if (r->enable)
+				{
+					const CRenderer::Data data = r->data;
+					const auto shape = static_cast<Renderer2D::Shape>(data.shape);
+					const glm::vec2 position = r->mAssignedTransform->position;
+					const float rotation = r->mAssignedTransform->rotation;
+					const glm::vec2 size = r->mAssignedTransform->scale;
+					Renderer2D::Draw(shape, data.texture, data.texRepetition, position,
+						size, rotation, data.color);
+				}
 			}
 
 		}

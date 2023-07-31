@@ -80,6 +80,7 @@ public:
 public:
 	Data data;
 	unsigned int layer;
+	bool enable = true;
 private:
 	ECS::Entity* mAssignedEntity;
 	CTransform* mAssignedTransform;

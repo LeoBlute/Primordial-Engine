@@ -73,7 +73,7 @@ void CPhysicsBody::ApplyLinearImpulse(const glm::vec2& impulse)
 void CPhysicsBody::ApplyForceAt(const glm::vec2& force, const glm::vec2& position)
 {
 	//Avoid pointless operations
-	if (force == glm::vec2(0.0f, 0.0f) || mStats.type != Type::Dynamic)
+	if (force == glm::vec2(0.0f, 0.0f) || mStats.type != Type::Dynamic || mEnable == false)
 		return;
 
 	BDEF;
@@ -98,7 +98,7 @@ void CPhysicsBody::ApplyForce(const glm::vec2& force)
 void CPhysicsBody::ApplyAngularImpulse(const float impulse)
 {
 	//Avoid pointless operations
-	if (impulse == 0.0f || mStats.type != Type::Dynamic)
+	if (impulse == 0.0f || mStats.type != Type::Dynamic || mEnable == false)
 		return;
 
 	BDEF;
@@ -116,7 +116,7 @@ void CPhysicsBody::ApplyAngularImpulse(const float impulse)
 void CPhysicsBody::ApplyTorque(const float torque)
 {
 	//Avoid pointless operations
-	if (torque == 0.0f || mStats.type != Type::Dynamic)
+	if (torque == 0.0f || mStats.type != Type::Dynamic || mEnable == false)
 		return;
 
 	BDEF;
@@ -134,7 +134,7 @@ void CPhysicsBody::ApplyTorque(const float torque)
 void CPhysicsBody::ApplyLinearImpulseAt(const glm::vec2& impulse, const glm::vec2& position)
 {
 	//Avoid pointless operations
-	if (impulse == glm::vec2(0.0f, 0.0f) || mStats.type != Type::Dynamic)
+	if (impulse == glm::vec2(0.0f, 0.0f) || mStats.type != Type::Dynamic || mEnable == false)
 		return;
 
 	BDEF;
@@ -190,6 +190,13 @@ void CPhysicsBody::SetAngularVelocity(const float velocity)
 {
 	BDEF;
 	body->SetAngularVelocity(velocity);
+}
+
+void CPhysicsBody::SetEnable(const bool enable)
+{
+	BDEF;
+	mEnable = enable;
+	body->SetEnabled(mEnable);
 }
 
 const bool CPhysicsBody::IsCollidingWith(CPhysicsBody* other)

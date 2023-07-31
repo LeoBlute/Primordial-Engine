@@ -141,6 +141,8 @@ public:
 		mStats.friction = friction;
 		UpdateBodyStats();
 	}
+	constexpr inline const bool IsEnable() const { return mEnable; };
+	void SetEnable(const bool enable);
 	inline ECS::Entity* GetOwner() { return mAssignedEntity; };
 	inline CTransform* GetTransform() { return mAssignedTransform; };
 	const bool IsCollidingWith(CPhysicsBody* other);
@@ -154,5 +156,6 @@ private:
 	CTransform* mAssignedTransform;
 	void* mBody;
 	Stats mStats;
+	bool mEnable = true;
 	std::unordered_map<CPhysicsBody*, bool> mCollidings;
 };
