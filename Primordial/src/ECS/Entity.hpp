@@ -72,7 +72,7 @@ namespace ECS {
 		template<typename T, typename... Args>
 		inline T* AddComponent(Args&&... args)
 		{
-			return &Scene::mRegistry.emplace<T>(mID, std::forward<Args>(args)...);
+			return &Scene::mRegistry.emplace<T>(mID, this, std::forward<Args>(args)...);
 		}
 
 		template<typename T, typename... Args>

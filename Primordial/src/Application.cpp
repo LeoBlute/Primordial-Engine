@@ -25,7 +25,7 @@ protected:
 		CRenderer::ShapeDef rdef;
 		rdef.color = glm::vec4(0.2f, 0.4f, 1.0f, 1.0f);
 		rdef.shape = CRenderer::Quad;
-		renderer = AddComponent<CRenderer>(this, rdef, 0);
+		renderer = AddComponent<CRenderer>(rdef, 0);
 	}
 public:
 	using Entity::Entity;
@@ -48,7 +48,7 @@ protected:
 		CRenderer::ShapeDef rdef;
 		rdef.color = glm::vec4(0.7f, 1.0f, 0.2f, 1.0f);
 		rdef.shape = CRenderer::Quad;
-		renderer = AddComponent<CRenderer>(this, rdef, 0);
+		renderer = AddComponent<CRenderer>(rdef, 0);
 
 		CPhysicsBody::Stats stats;
 		stats.density = 1.0f;
@@ -59,7 +59,7 @@ protected:
 		stats.restitution = 0.3f;
 		stats.restitutionThreshold = 1.0f;
 		stats.type = CPhysicsBody::Type::Dynamic;
-		physicsBody = AddComponent<CPhysicsBody>(this, stats);
+		physicsBody = AddComponent<CPhysicsBody>(stats);
 	}
 	void TargetUpdate() override
 	{
@@ -84,7 +84,7 @@ protected:
 		rdef.shape = CRenderer::Quad;
 		rdef.texRepetition = glm::vec2(1.0f, 1.0f);
 		rdef.texture = texture;
-		renderer = AddComponent<CRenderer>(this, rdef, 1);
+		renderer = AddComponent<CRenderer>(rdef, 1);
 
 		CPhysicsBody::Stats stats;
 		stats.density = 1.0f;
@@ -95,7 +95,7 @@ protected:
 		stats.restitution = 0.0f;
 		stats.restitutionThreshold = 1.0f;
 		stats.type = CPhysicsBody::Type::Dynamic;
-		physicsBody = AddComponent<CPhysicsBody>(this, stats);
+		physicsBody = AddComponent<CPhysicsBody>(stats);
 
 		floor = ECS::Scene::GetEntitiesOrComponentsByName<ECS::Entity>("Floor")[0];
 	};
