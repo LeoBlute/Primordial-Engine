@@ -75,13 +75,17 @@ public:
 	};
 	CRenderer(const CRenderer&) = delete;
 	~CRenderer() = default;
-	inline bool HasTexture() const { return (data.texture != NULL); };
 	bool operator==(const CRenderer& other) const = default;
+	constexpr inline const bool HasTexture() const { return (data.texture != NULL); };
+	constexpr inline const bool IsEnable() const { return mEnable; };
+	void SetEnable(const bool enable) { mEnable = enable; };
+	constexpr inline ECS::Entity* GetAssignedEntity() const { return mAssignedEntity; };
+	constexpr inline CTransform* GetAssignedTransform() const { return mAssignedTransform; };
 public:
 	Data data;
 	unsigned int layer;
-	bool enable = true;
 private:
 	ECS::Entity* mAssignedEntity;
 	CTransform* mAssignedTransform;
+	bool mEnable = true;
 };

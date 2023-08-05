@@ -13,9 +13,25 @@
 #include "Rendering/Texture.hpp"
 #include "ECS/Components/CPhysicsBody.hpp"
 #include "ECS/Components/CRenderer.hpp"
+#include "ECS/Components/Component.hpp"
 #include "imgui/imgui.h"
 
 inline bool isColliding = false;
+
+class CT : public Component
+{
+	COMPONENT_IMPLEMENT(CT)
+protected:
+	virtual void OnCreated() override
+	{
+		DEBUG_INFO("OnCreated");
+	}
+	virtual void OnDestroyed() override
+	{
+		DEBUG_INFO("OnDestroyed");
+	}
+	
+};
 
 class Other : public ECS::Entity
 {
@@ -25,7 +41,7 @@ protected:
 		CRenderer::ShapeDef rdef;
 		rdef.color = glm::vec4(0.2f, 0.4f, 1.0f, 1.0f);
 		rdef.shape = CRenderer::Quad;
-		renderer = AddComponent<CRenderer>(rdef, 0);
+		renderer = AddRenderer(rdef, 0);
 	}
 public:
 	using Entity::Entity;
@@ -48,7 +64,7 @@ protected:
 		CRenderer::ShapeDef rdef;
 		rdef.color = glm::vec4(0.7f, 1.0f, 0.2f, 1.0f);
 		rdef.shape = CRenderer::Quad;
-		renderer = AddComponent<CRenderer>(rdef, 0);
+		renderer = AddRenderer(rdef, 0);
 
 		CPhysicsBody::Stats stats;
 		stats.density = 1.0f;
@@ -59,9 +75,9 @@ protected:
 		stats.restitution = 0.3f;
 		stats.restitutionThreshold = 1.0f;
 		stats.type = CPhysicsBody::Type::Dynamic;
-		physicsBody = AddComponent<CPhysicsBody>(stats);
+		physicsBody = AddPhysicsBody(stats);
 	}
-	void TargetUpdate() override
+	void OnTargetUpdate() override
 	{
 		const glm::vec2 velocity = physicsBody->GetLinearVelocity();
 	}
@@ -84,7 +100,7 @@ protected:
 		rdef.shape = CRenderer::Quad;
 		rdef.texRepetition = glm::vec2(1.0f, 1.0f);
 		rdef.texture = texture;
-		renderer = AddComponent<CRenderer>(rdef, 1);
+		renderer = AddRenderer(rdef, 1);
 
 		CPhysicsBody::Stats stats;
 		stats.density = 1.0f;
@@ -95,7 +111,10 @@ protected:
 		stats.restitution = 0.0f;
 		stats.restitutionThreshold = 1.0f;
 		stats.type = CPhysicsBody::Type::Dynamic;
-		physicsBody = AddComponent<CPhysicsBody>(stats);
+		physicsBody = AddPhysicsBody(stats);
+
+		AddComponent<CT>();
+		//RemoveComponent<CT>();
 
 		floor = ECS::Scene::GetEntitiesOrComponentsByName<ECS::Entity>("Floor")[0];
 	};
@@ -106,7 +125,7 @@ protected:
 			const glm::vec2 endPoint(transform->position - glm::vec2(0.0f, 4.0f));
 			const RaycastResult result = ECS::Scene::Physics::Raycast(transform->position, transform->position);
 			if(result.hasHit)
-				std::cout << (result.physicsBody->GetOwner()->identity->name) << std::endl;
+				std::cout << (result.physicsBody->GetAssignedIdentity()->name) << std::endl;
 		}
 		if (key == INPUT_KEY_F && type == Inputs::Pressed)
 		{
@@ -118,12 +137,12 @@ protected:
 			physicsBody->ApplyLinearImpulse(glm::vec2(0.0f, 300.0f));
 		}
 	}
-	void TargetUpdate() override
+	void OnTargetUpdate() override
 	{
 		const glm::vec2 endPoint(transform->position - glm::vec2(0.0f, 4.0f));
 		isColliding = physicsBody->IsCollidingWith(floor);
 	};
-	void TickUpdate() override
+	void OnTickUpdate() override
 	{
 		glm::vec2 velocity = glm::vec2(0.0f, 0.0f);
 		if (Inputs::GetPressingKey(INPUT_KEY_A)) { velocity.x -= speed; }
@@ -236,6 +255,8 @@ int main(int argc, char* argv)
 
 	Inputs::Terminate();
 	Window::Terminate();
+
+	DEBUG_INFO("Prorperly Quit");
 
 	return 0;
 }

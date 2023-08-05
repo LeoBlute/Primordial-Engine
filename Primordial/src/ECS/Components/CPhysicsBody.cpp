@@ -6,6 +6,7 @@
 #include "CPhysicsBody.hpp"
 #include "ECS/Entity.hpp"
 #include "ECS/Components/CTransform.hpp"
+#include "ECS/Components/CIdentity.hpp"
 
 //Quickly define body in function
 #define BDEF b2Body* body = static_cast<b2Body*>(mBody)
@@ -197,6 +198,11 @@ void CPhysicsBody::SetEnable(const bool enable)
 	BDEF;
 	mEnable = enable;
 	body->SetEnabled(mEnable);
+}
+
+CIdentity* CPhysicsBody::GetAssignedIdentity() const
+{
+	return mAssignedEntity->identity;
 }
 
 const bool CPhysicsBody::IsCollidingWith(CPhysicsBody* other)

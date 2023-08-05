@@ -191,14 +191,16 @@ namespace ECS
 			Physics::Step(1.0f / 60.0f);
 			for (Entity* e : mEntities)
 			{
-				e->TickUpdate();
+				if (e->IsEnable())
+					e->TickUpdate();
 			}
 		}
 		void TargetUpdate()
 		{
 			for (Entity* e : mEntities)
 			{
-				e->TargetUpdate();
+				if(e->IsEnable())
+					e->TargetUpdate();
 			}
 			const auto view = mRegistry.view<CRenderer>();
 			std::vector<CRenderer*> iterator;
@@ -213,7 +215,7 @@ namespace ECS
 
 			for (CRenderer* r : iterator)
 			{
-				if (r->enable)
+				if (r->IsEnable())
 				{
 					const CRenderer::Data data = r->data;
 					const auto shape = static_cast<Renderer2D::Shape>(data.shape);

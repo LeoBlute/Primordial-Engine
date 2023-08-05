@@ -1,6 +1,11 @@
 #pragma once
 
 #include "Scene.hpp"
+#include "Components/Component.hpp"
+
+class CPhysicsBody;
+class CRenderer;
+class Component;
 
 namespace Inputs {
 	enum Type;
@@ -35,8 +40,10 @@ namespace ECS {
 	protected:
 		virtual void OnCreated() {};
 		virtual void OnDestroyed() {};
-		virtual void TargetUpdate() {};
-		virtual void TickUpdate() {};
+		virtual void OnTargetUpdate() {};
+		virtual void OnTickUpdate() {};
+		void TargetUpdate();
+		void TickUpdate();
 
 		virtual void OnKeyEvent(int key, Inputs::Type type) {};
 		virtual void OnMouseButtonEvent(int key, Inputs::Type type) {};
@@ -46,18 +53,19 @@ namespace ECS {
 		virtual void OnCollisionEnd(CPhysicsBody* other) {};
 	public:
 		template<typename T>
-		inline bool HasComponent()
+		inline bool HasComponent() const
 		{
 			return Scene::mRegistry.any_of<T>(mID);
 		}
 
 		template<typename T>
-		inline T* GetComponent()
+		inline T* GetComponent() const
 		{
 			if (!HasComponent<T>())
 				return NULL;
 
-			return &Scene::mRegistry.get<T>(mID);
+			T* c = &Scene::mRegistry.get<T>(mID);
+			return c;
 		}
 
 		template<typename T>
@@ -66,26 +74,54 @@ namespace ECS {
 			if (!HasComponent<T>())
 				return;
 
+			Component* component_c = GetComponent<T>();
+			//component_c->OnDestroyed();
+			auto it = std::find(mAttachedComponents.begin(),
+				mAttachedComponents.end(), component_c);
+			if (it != mAttachedComponents.end())
+			{
+				mAttachedComponents.erase(it);
+			}
+
 			Scene::mRegistry.remove<T>(mID);
 		}
 
 		template<typename T, typename... Args>
 		inline T* AddComponent(Args&&... args)
 		{
-			return &Scene::mRegistry.emplace<T>(mID, this, std::forward<Args>(args)...);
+			T* c = &Scene::mRegistry.emplace<T>(mID, this, std::forward<Args>(args)...);
+			Component* component_c = c;
+			//component_c->OnCreated();
+			mAttachedComponents.emplace_back(component_c);
+			return c;
 		}
 
-		template<typename T, typename... Args>
-		inline T* AddOrReplaceComponent(Args&&... args)
+		template<typename... Args>
+		inline CPhysicsBody* AddPhysicsBody(Args&&... args)
 		{
-			return &Scene::mRegistry.emplace_or_replace<T>(mID, std::forward<Args>(args)...);
+			return &Scene::mRegistry.emplace<CPhysicsBody>(mID, this, std::forward<Args>(args)...);
 		}
+
+		template<typename... Args>
+		inline CRenderer* AddRenderer(Args&&... args)
+		{
+			return &Scene::mRegistry.emplace<CRenderer>(mID, this, std::forward<Args>(args)...);
+		}
+
+		void RemovePhysicsBody();
+
+		void RemoveCRenderer();
 
 	public:
-		inline const entt::entity GetID() const { return mID; };
+		constexpr inline const entt::entity GetID() const { return mID; };
+		constexpr inline bool IsEnable() const { return mEnable; };
+		//Determines if the entity will receive updates requests
+		constexpr inline void SetEnable(const bool enable) { mEnable = enable; };
 		CTransform* transform;
 		CIdentity* identity;
 	private:
+		std::vector<Component*> mAttachedComponents;
 		const entt::entity mID;
+		bool mEnable = true;
 	};
 }

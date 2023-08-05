@@ -4,6 +4,8 @@
 
 class CTransform;
 
+class CIdentity;
+
 namespace ECS {
 	class Entity;
 	namespace Scene {
@@ -68,7 +70,7 @@ public:
 		float friction = 0.2f;
 	};
 public:
-	#pragma region Deleted construction
+	#pragma region Deleted constructors
 	CPhysicsBody(const CPhysicsBody&) = delete;
 	CPhysicsBody() = delete;
 	#pragma endregion
@@ -143,8 +145,9 @@ public:
 	}
 	constexpr inline const bool IsEnable() const { return mEnable; };
 	void SetEnable(const bool enable);
-	inline ECS::Entity* GetOwner() { return mAssignedEntity; };
-	inline CTransform* GetTransform() { return mAssignedTransform; };
+	constexpr inline ECS::Entity* GetAssignedEntity() const { return mAssignedEntity; };
+	constexpr inline CTransform* GetAssignedTransform() const { return mAssignedTransform; };
+	CIdentity* GetAssignedIdentity() const;
 	const bool IsCollidingWith(CPhysicsBody* other);
 	const bool IsCollidingWith(ECS::Entity* other);
 	#pragma endregion
