@@ -48,6 +48,7 @@ public:
 	CRenderer* renderer;
 };
 
+
 class Col : public ECS::Entity
 {
 protected:
