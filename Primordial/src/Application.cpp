@@ -93,7 +93,6 @@ private:
 protected:
 	void OnCreated() override
 	{
-
 		texture = new Renderer2D::Texture("res/Images/f4r44t.png");
 		CRenderer::TexDef rdef;
 		rdef.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -114,7 +113,6 @@ protected:
 		physicsBody = AddPhysicsBody(stats);
 
 		AddComponent<CT>();
-		//RemoveComponent<CT>();
 
 		floor = ECS::Scene::GetEntitiesOrComponentsByName<ECS::Entity>("Floor")[0];
 	};

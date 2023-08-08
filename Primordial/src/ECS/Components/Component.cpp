@@ -2,11 +2,6 @@
 
 #include "ECS/Entity.hpp"
 
-void Component::_OCR(Component* c)
-{
-	c->OnCreated();
-}
-
 CTransform* Component::GetAssignedTransform() const
 {
 	return mAssignedEntity->transform;

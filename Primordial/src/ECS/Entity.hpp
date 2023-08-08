@@ -37,6 +37,8 @@ namespace ECS {
 		}
 		~Entity() = default;
 		bool operator==(const Entity& other) const = default;
+	private:
+		void _PrintComponentWarning(const char* str) const;
 	protected:
 		virtual void OnCreated() {};
 		virtual void OnDestroyed() {};
@@ -86,12 +88,16 @@ namespace ECS {
 			Scene::mRegistry.remove<T>(mID);
 		}
 
-		template<typename T, typename... Args>
-		inline T* AddComponent(Args&&... args)
+		template<typename T>
+		inline T* AddComponent()
 		{
-			T* c = &Scene::mRegistry.emplace<T>(mID, this, std::forward<Args>(args)...);
+			if (HasComponent<T>())
+			{
+				_PrintComponentWarning("Entity already has component,cannot add another on top");
+				return GetComponent<T>();
+			}
+			T* c = &Scene::mRegistry.emplace<T>(mID, this);
 			Component* component_c = c;
-			//component_c->OnCreated();
 			mAttachedComponents.emplace_back(component_c);
 			return c;
 		}
@@ -99,12 +105,24 @@ namespace ECS {
 		template<typename... Args>
 		inline CPhysicsBody* AddPhysicsBody(Args&&... args)
 		{
+			if (HasComponent<CPhysicsBody>())
+			{
+				_PrintComponentWarning("Entity already has component CPhysicsBody\
+,cannot add another on top");
+				return GetComponent<CPhysicsBody>();
+			}
 			return &Scene::mRegistry.emplace<CPhysicsBody>(mID, this, std::forward<Args>(args)...);
 		}
 
 		template<typename... Args>
 		inline CRenderer* AddRenderer(Args&&... args)
 		{
+			if (HasComponent<CRenderer>())
+			{
+				_PrintComponentWarning("Entity already has component CRenderer\
+,cannot add another on top");
+				return GetComponent<CRenderer>();
+			}
 			return &Scene::mRegistry.emplace<CRenderer>(mID, this, std::forward<Args>(args)...);
 		}
 

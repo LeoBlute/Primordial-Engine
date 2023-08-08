@@ -3,9 +3,14 @@
 #include "ECS/Components/CPhysicsBody.hpp"
 #include "ECS/Components/CRenderer.hpp"
 #include "Components/Component.hpp"
+#include "VUtils/DebugUtils.hpp"
 
 namespace ECS
 {
+    void Entity::_PrintComponentWarning(const char* str) const
+    {
+        DEBUG_FILE_WARN(str);
+    }
     void Entity::TargetUpdate()
     {
         //A copy is made because if a new component is added it should not be update
