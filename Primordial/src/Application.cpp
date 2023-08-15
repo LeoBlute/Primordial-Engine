@@ -5,6 +5,7 @@
 
 #include "System/Window.hpp"
 #include "System/Inputs.hpp"
+#include "System/Audio.hpp"
 #include "GUI/GUI.hpp"
 #include "Rendering/Renderer2D.hpp"
 #include "Rendering/Shader.hpp"
@@ -182,6 +183,9 @@ int main(int argc, char* argv)
 	//Inputs
 	Inputs::Init();
 
+	//Audio
+	Audio::Init();
+
 	//GUI
 	GUI::Init(Window::GetRawWindow());
 	GUI::SetColorStyle(GUI::ColorStyle::Dark);
@@ -249,6 +253,8 @@ int main(int argc, char* argv)
 	ECS::Scene::Terminate();
 
 	GUI::Terminate();
+
+	Audio::Terminate();
 
 	Renderer2D::Terminate();
 
