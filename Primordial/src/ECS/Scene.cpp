@@ -143,6 +143,11 @@ namespace ECS
 
 			const RaycastResult Raycast(const glm::vec2& pointA, const glm::vec2& pointB)
 			{
+				if (pointA == pointB) [[unlikely]]
+				{
+					DEBUG_WARN("Cannot perform raycast");
+					return { false, NULL, pointA, glm::vec2(0.0f, 0.0f), 0.0f};
+				}
 				RaycastCallback raycastor;
 				const b2Vec2 _pointA(pointA.x, pointA.y);
 				const b2Vec2 _pointB(pointB.x, pointB.y);

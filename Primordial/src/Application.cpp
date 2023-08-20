@@ -117,19 +117,30 @@ protected:
 		AddComponent<CT>();
 
 		floor = ECS::Scene::GetEntitiesOrComponentsByName<ECS::Entity>("Floor")[0];
+		aSource = new Audio::Source("res/Audio/bleep.mp3");
 	};
+	void OnDestroyed() override
+	{
+		delete aSource;
+		delete texture;
+	}
 	void OnKeyEvent(int key, Inputs::Type type) override
 	{
 		if (key == INPUT_KEY_R && type == Inputs::Pressed)
 		{
 			const glm::vec2 endPoint(transform->position - glm::vec2(0.0f, 4.0f));
-			const RaycastResult result = ECS::Scene::Physics::Raycast(transform->position, transform->position);
+			const RaycastResult result =
+				ECS::Scene::Physics::Raycast(transform->position, floor->transform->position);
 			if(result.hasHit)
 				std::cout << (result.physicsBody->GetAssignedIdentity()->name) << std::endl;
 		}
 		if (key == INPUT_KEY_F && type == Inputs::Pressed)
 		{
 			renderer->data.shape = renderer->data.shape ? CRenderer::Quad : CRenderer::Triangle;
+		}
+		if (key == INPUT_KEY_Q && type == Inputs::Pressed)
+		{
+			Audio::PlayFromSource(aSource);
 		}
 		if ((key == INPUT_KEY_SPACE || key == INPUT_KEY_W) &&
 			type == Inputs::Pressed && physicsBody->IsCollidingWith(floor))
@@ -159,9 +170,14 @@ public:
 	ECS::Entity* floor = NULL;
 	Renderer2D::Texture* texture;
 	CRenderer* renderer;
+	Audio::Source* aSource;
 	constexpr static inline float speed = 3.0f;
 };
 
+
+//Press Q to test sound
+//Press R to test Raycasting
+//Press F to test rendering shapes
 int main(int argc, char* argv)
 {
 	//Window system initialized with settings
