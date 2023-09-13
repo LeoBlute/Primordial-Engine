@@ -2,6 +2,7 @@
 #include <string>
 #include <ctime>
 
+
 namespace TimeUtils {
 	//Complete date
 	static const std::string GetDate()

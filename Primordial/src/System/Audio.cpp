@@ -29,8 +29,7 @@ static inline irrklang::ISoundEngine* rawEngine;
 //Useless but implemented
 static inline SoundStopReceiver* soundStopCatcher;
 
-namespace Audio {
-	void Init()
+	void Audio::Init()
 	{
 		rawEngine = irrklang::createIrrKlangDevice();
 		if (!rawEngine) [[unlikely]] {
@@ -40,37 +39,37 @@ namespace Audio {
 		soundStopCatcher = new SoundStopReceiver();
 	}
 
-	void Terminate()
+	void Audio::Terminate()
 	{
 		rawEngine->removeAllSoundSources();
 		delete soundStopCatcher;
 		rawEngine->drop();
 	}
 
-	const float GetVolume()
+	const float Audio::GetVolume()
 	{
 		return rawEngine->getSoundVolume();
 	}
 
-	void PlayFromFile(const char* path)
+	void Audio::PlayFromFile(const char* path)
 	{
 		irrklang::ISound* rawSound = rawEngine->play2D(path, false, false, true);
 		if (rawSound)
 			rawSound->setSoundStopEventReceiver(soundStopCatcher);
 	}
 
-	void SetVolume(const float value)
+	void Audio::SetVolume(const float value)
 	{
 		rawEngine->setSoundVolume(value);
 	}
 
 
-	void* GetRawEngine()
+	void* Audio::GetRawEngine()
 	{
 		return rawEngine;
 	}
 
-	void PlayFromSource(Audio::Source* source)
+	void Audio::PlayFromSource(Audio::Source* source)
 	{
 		if (!source->mRawSource)
 			return;
@@ -85,26 +84,21 @@ namespace Audio {
 			rawSound->setSoundStopEventReceiver(soundStopCatcher);
 	}
 
-	//Source::Source()
-	//{
-	//	mRawSource = NULL;
-	//}
-
-	Source::Source(const char* path, const float volume)
+	Audio::Source::Source(const char* path, const float volume)
 	{
 		mRawSource = rawEngine->addSoundSourceFromFile(path);
 		SDEF;
 		source->setDefaultVolume(volume);
 	}
 
-	Source::~Source()
+	Audio::Source::~Source()
 	{
 		SDEF;
 		rawEngine->removeSoundSource(source);
 		mRawSource = NULL;
 	}
 
-	void Source::SetFile(const char* path)
+	void Audio::Source::SetFile(const char* path)
 	{
 		SDEF;
 		const float volume = source->getDefaultVolume();
@@ -113,4 +107,3 @@ namespace Audio {
 		source->setDefaultVolume(volume);
 		mRawSource = source;
 	}
-}

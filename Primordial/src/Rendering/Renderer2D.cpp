@@ -244,6 +244,6 @@ void Renderer2D::BindVertexArray()
 
 void Renderer2D::DebugCallback(unsigned int source, unsigned int type, unsigned int id, unsigned int severity, int length, const char* message, const void* userParam)
 {
-	DEBUG_CRIT("GL_ERROR!");
+	DEBUG_WARN("GL_ERROR!");
 	std::cout << message << std::endl;
 }

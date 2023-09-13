@@ -93,7 +93,8 @@ namespace ECS {
 		{
 			if (HasComponent<T>())
 			{
-				_PrintComponentWarning("Entity already has component,cannot add another on top");
+				_PrintComponentWarning("Entity already has component,\
+				cannot add another on top");
 				return GetComponent<T>();
 			}
 			T* c = &Scene::mRegistry.emplace<T>(mID, this);
@@ -108,7 +109,7 @@ namespace ECS {
 			if (HasComponent<CPhysicsBody>())
 			{
 				_PrintComponentWarning("Entity already has component CPhysicsBody\
-,cannot add another on top");
+				,cannot add another on top");
 				return GetComponent<CPhysicsBody>();
 			}
 			return &Scene::mRegistry.emplace<CPhysicsBody>(mID, this, std::forward<Args>(args)...);
@@ -120,7 +121,7 @@ namespace ECS {
 			if (HasComponent<CRenderer>())
 			{
 				_PrintComponentWarning("Entity already has component CRenderer\
-,cannot add another on top");
+				,cannot add another on top");
 				return GetComponent<CRenderer>();
 			}
 			return &Scene::mRegistry.emplace<CRenderer>(mID, this, std::forward<Args>(args)...);

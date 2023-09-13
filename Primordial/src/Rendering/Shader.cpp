@@ -83,7 +83,7 @@ const unsigned int Renderer2D::Shader::CreateShader(const char* code, int type)
     {
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
         std::cout << code << std::endl;
-        DEBUG_CRIT("Shader failed to compile");
+        DEBUG_WARN("Shader failed to compile");
         std::cout << type << std::endl;
         DEBUG_ERROR(infoLog);
     }

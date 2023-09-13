@@ -67,6 +67,7 @@
       <PreprocessToFile>false</PreprocessToFile>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -90,6 +91,7 @@
       <PreprocessToFile>false</PreprocessToFile>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -387,10 +389,10 @@
     <ClInclude Include="src\System\Inputs.hpp" />
     <ClInclude Include="src\GUI\GUI.hpp" />
     <ClInclude Include="src\System\UUID.hpp" />
+    <ClInclude Include="src\VUtils\ANSICode.hpp" />
     <ClInclude Include="src\VUtils\DebugUtils.hpp" />
     <ClInclude Include="src\VUtils\Events.hpp" />
     <ClInclude Include="src\VUtils\FileUtils.hpp" />
-    <ClInclude Include="src\VUtils\PerformanceTracker.hpp" />
     <ClInclude Include="src\VUtils\TimeUtils.hpp" />
     <ClInclude Include="vendor\box2d\include\b2_api.h" />
     <ClInclude Include="vendor\box2d\include\b2_block_allocator.h" />

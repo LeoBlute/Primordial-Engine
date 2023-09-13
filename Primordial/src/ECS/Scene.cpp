@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 #include "glm/glm.hpp"
 #include "VUtils/Events.hpp"
 #include "box2d/box2d.h"
@@ -82,24 +83,40 @@ namespace ECS
 
 			inline ContactListener* contactor;
 
-			void Init()
+			const RaycastResult Raycast(const glm::vec2& pointA, const glm::vec2& pointB)
 			{
-				const b2Vec2 pressure(0.0f, -50.0f);
-				mWorld = new b2World(pressure);
-				contactor = new ContactListener();
-				mWorld->SetContactListener(contactor);
+				if (pointA == pointB) [[unlikely]]
+					{
+						DEBUG_WARN("Cannot perform raycast");
+						return { false, NULL, pointA, glm::vec2(0.0f, 0.0f), 0.0f };
+					}
+					RaycastCallback raycastor;
+					const b2Vec2 _pointA(pointA.x, pointA.y);
+					const b2Vec2 _pointB(pointB.x, pointB.y);
+					mWorld->RayCast(&raycastor, _pointA, _pointB);
+
+					return raycastor.result;
 			}
-			void Terminate()
+		}
+	}
+}
+
+const glm::vec2 ECS::Scene::Physics::GetGravity()
 			{
-				if (mWorld->GetBodyCount() > 0)
-				{
-					DEBUG_TODO("Include safety deletion since the idiot did not");
-				}
-				delete mWorld;
-				delete contactor;
+				const b2Vec2 value = mWorld->GetGravity();
+				return glm::vec2(value.x, value.y);
+			}
+void ECS::Scene::Physics::SetGravity(const glm::vec2& value)
+			{
+				const b2Vec2 f_value(value.x, value.y);
+				mWorld->SetGravity(f_value);
+			}
+void* ECS::Scene::Physics::GetRawWorld()
+			{
+				return mWorld;
 			}
 
-			void Step(const float timestep)
+void ECS::Scene::Physics::Step(const float timestep)
 			{
 				const int velocityIterations = 6;
 				const int positionIterations = 2;
@@ -140,109 +157,115 @@ namespace ECS
 					}
 				}
 			}
+void ECS::Scene::Physics::Init()
+{
+	const b2Vec2 pressure(0.0f, -50.0f);
+	mWorld = new b2World(pressure);
+	contactor = new ContactListener();
+	mWorld->SetContactListener(contactor);
+}
+void ECS::Scene::Physics::Terminate()
+{
+	if (mWorld->GetBodyCount() > 0)
+	{
+		DEBUG_TODO("Include safety deletion since the idiot did not");
+	}
+	delete mWorld;
+	delete contactor;
+}
 
-			const RaycastResult Raycast(const glm::vec2& pointA, const glm::vec2& pointB)
-			{
-				if (pointA == pointB) [[unlikely]]
-				{
-					DEBUG_WARN("Cannot perform raycast");
-					return { false, NULL, pointA, glm::vec2(0.0f, 0.0f), 0.0f};
-				}
-				RaycastCallback raycastor;
-				const b2Vec2 _pointA(pointA.x, pointA.y);
-				const b2Vec2 _pointB(pointB.x, pointB.y);
-				mWorld->RayCast(&raycastor, _pointA, _pointB);
-
-				return raycastor.result;
-			}
-			
-			const glm::vec2 GetGravity()
-			{
-				const b2Vec2 value = mWorld->GetGravity();
-				return glm::vec2(value.x, value.y);
-			}
-			void SetGravity(const glm::vec2& value)
-			{
-				const b2Vec2 f_value(value.x, value.y);
-				mWorld->SetGravity(f_value);
-			}
-			void* GetRawWorld()
-			{
-				return mWorld;
-			}
-		}
-
-		void Init()
+void ECS::Scene::Init()
+{
+	constexpr size_t capacity = static_cast<const size_t>(100);
+	mEntities.reserve(capacity);
+	Inputs::KeyEvents.AddFunc(KeyEventsHandle);
+	Inputs::MouseButtonEvents.AddFunc(MouseButtonEventsHandle);
+	Inputs::ScrollEvent.AddFunc(ScrollEventsHandle);
+	Physics::Init();
+}
+void ECS::Scene::Terminate()
+{
+	for (Entity* e : mEntities)
+	{
+		e->OnDestroyed();
+	}
+	mRegistry.clear();
+	mEntityMap.clear();
+	Physics::Terminate();
+}
+void ECS::Scene::TickUpdate()
+{
+	Physics::Step(1.0f / 60.0f);
+	for (Entity* e : mEntities)
+	{
+		assert(e);		
+		if (e->IsEnable())
 		{
-			constexpr size_t capacity = static_cast<const size_t>(100);
-			mEntities.reserve(capacity);
-			Inputs::KeyEvents.AddFunc(KeyEventsHandle);
-			Inputs::MouseButtonEvents.AddFunc(MouseButtonEventsHandle);
-			Inputs::ScrollEvent.AddFunc(ScrollEventsHandle);
-			Physics::Init();
-		}
-		void Terminate()
-		{
-			for (Entity* e : mEntities)
+			try
 			{
-				e->OnDestroyed();
+				e->TickUpdate();
 			}
-			mRegistry.clear();
-			mEntityMap.clear();
-			Physics::Terminate();
-		}
-		void TickUpdate()
-		{
-			Physics::Step(1.0f / 60.0f);
-			for (Entity* e : mEntities)
+			catch (const std::exception& err)
 			{
-				if (e->IsEnable())
-					e->TickUpdate();
+				DebugUtils::Log(false, ANSICode::Red,
+					"Entity:", e->identity->name," Threw Error:", err.what());
 			}
-		}
-		void TargetUpdate()
-		{
-			for (Entity* e : mEntities)
-			{
-				if(e->IsEnable())
-					e->TargetUpdate();
-			}
-			const auto view = mRegistry.view<CRenderer>();
-			std::vector<CRenderer*> iterator;
-			iterator.reserve(100);
-			for (const entt::entity e : view)
-			{
-				iterator.emplace_back(&mRegistry.get<CRenderer>(e));
-			}
-			std::sort(iterator.begin(), iterator.end(), [](CRenderer* r1, CRenderer* r2) {
-				return r1->layer < r2->layer;
-				});
-
-			for (CRenderer* r : iterator)
-			{
-				if (r->IsEnable())
-				{
-					const CRenderer::Data data = r->data;
-					const auto shape = static_cast<Renderer2D::Shape>(data.shape);
-					const glm::vec2 position = r->mAssignedTransform->position;
-					const float rotation = r->mAssignedTransform->rotation;
-					const glm::vec2 size = r->mAssignedTransform->scale;
-					Renderer2D::Draw(shape, data.texture, data.texRepetition, position,
-						size, rotation, data.color);
-				}
-			}
-
 		}
 	}
-	CIdentity* _HackToGetIdentity(ECS::Entity* e)
+}
+void ECS::Scene::TargetUpdate()
+{
+	for (Entity* e : mEntities)
+	{
+		assert(e);
+		if (e->IsEnable())
+		{
+			try
+			{
+				e->TargetUpdate();
+			}
+			catch (const std::exception& err)
+			{
+				DebugUtils::Log(false, ANSICode::Red,
+					"Entity:", e->identity->name, "-Threw Error:", err.what());
+			}
+		}
+	}
+	const auto view = mRegistry.view<CRenderer>();
+	std::vector<CRenderer*> iterator;
+	iterator.reserve(100);
+	for (const entt::entity e : view)
+	{
+		iterator.emplace_back(&mRegistry.get<CRenderer>(e));
+	}
+	std::sort(iterator.begin(), iterator.end(), [](CRenderer* r1, CRenderer* r2) {
+		return r1->layer < r2->layer;
+		});
+
+	for (CRenderer* r : iterator)
+	{
+		if (r->IsEnable())
+		{
+			const CRenderer::Data data = r->data;
+			const auto shape = static_cast<Renderer2D::Shape>(data.shape);
+			const glm::vec2 position = r->mAssignedTransform->position;
+			const float rotation = r->mAssignedTransform->rotation;
+			const glm::vec2 size = r->mAssignedTransform->scale;
+			Renderer2D::Draw(shape, data.texture, data.texRepetition, position,
+				size, rotation, data.color);
+		}
+	}
+}
+
+CIdentity* ECS::_HackToGetIdentity(ECS::Entity* e)
 	{
 		return e->GetComponent<CIdentity>();
 	}
-	void _HackOnCreated(Entity* entity)
+void ECS::_HackOnCreated(Entity* entity)
 	{
 		entity->OnCreated();
 	}
-	void DeleteEntity(Entity* entity)
+void ECS::DeleteEntity(Entity* entity)
 	{
 		if (!entity)
 			return;
@@ -259,5 +282,3 @@ namespace ECS
 			Scene::mRegistry.destroy(id);
 		}
 	}
-
-}

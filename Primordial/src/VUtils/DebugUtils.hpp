@@ -1,48 +1,116 @@
 #pragma once
-#include <string>
-#include <ctime>
+#include "TimeUtils.hpp"
+#include "ANSICode.hpp"
 #include <iostream>
-#include <type_traits>
 #include <filesystem>
 #include <fstream>
+#include <ostream>
+
 
 namespace DebugUtils {
-    template <typename T>
-    static void Log(T msg, const char* additional, bool toFile)
+    #pragma region Memory and Time
+    //*Determines if should track the amount of memory allocated
+    //*Enabled on EnableMemoryTracking()
+    //*Disabled on DisableMemoryTracking()
+    inline static bool gMemtrack = false;
+    //The amount of memory allocated
+    inline static size_t gAllocated = 0;
+    //The amount of times a memory allocation happened
+    inline static size_t gAllocatedCount = 0;
+    //The amount of memory deleted
+    inline static size_t gDeleted = 0;
+    //The amount of times a memory deletion happened
+    inline static size_t gDeletedCount = 0;
+
+    //*Gets the current time at start
+    //*Gets a new current time on ResetTimeTracking()
+    inline static std::chrono::steady_clock::time_point gStartTimeTracker = std::chrono::steady_clock::now();
+
+    #define IGNORE_TIME_TRACKING_BEGIN\
+    std::chrono::steady_clock::time_point timepoint_begin =\
+            std::chrono::steady_clock::now();
+
+
+    #define IGNORE_TIME_TRACKING_END\
+    std::chrono::steady_clock::time_point timepoint_end =\
+            std::chrono::steady_clock::now();\
+        gStartTimeTracker = DebugUtils::gStartTimeTracker - (timepoint_begin-timepoint_end);
+
+    inline void EnableMemoryTracking() { gMemtrack = true; };
+
+    inline void DisableMemoryTracking() { gMemtrack = false; };
+
+    inline void ResetMemoryTacking()
     {
+        gAllocated = 0;
+        gAllocatedCount = 0;
+        gDeleted = 0;
+        gDeletedCount = 0;
+    }
+
+    inline void PrintMemory()
+    {
+        IGNORE_TIME_TRACKING_BEGIN;
+        std::cout << "Allocated : " << gAllocated << std::endl;
+        std::cout << "Count     : " << gAllocatedCount << std::endl;
+        std::cout << "Deleted   : " << gDeleted << std::endl;
+        std::cout << "Count     : " << gDeletedCount << std::endl;
+        IGNORE_TIME_TRACKING_END;
+    }
+
+    template<typename T>
+    inline void PrintMemorySizeOf(const char* name, T item)
+    {
+        IGNORE_TIME_TRACKING_BEGIN;
+        std::cout << "Memory size of " << name << ":" << sizeof(item) << std::endl;
+        IGNORE_TIME_TRACKING_END;
+    }
+
+    inline void ResetTimeTracking()
+    {
+        gStartTimeTracker = std::chrono::steady_clock::now();
+    }
+
+    inline void PrintTimeTracked()
+    {
+        IGNORE_TIME_TRACKING_BEGIN;
+        double duration =
+            std::chrono::duration_cast<std::chrono::microseconds>
+            (timepoint_begin - gStartTimeTracker).count();
+        std::cout << "Time:" << duration << "ms" << std::endl;
+        IGNORE_TIME_TRACKING_END;
+    }
+
+    #pragma endregion
+
+    #pragma region Logging
+    template<typename T>
+    constexpr static inline void AddToStream
+    (std::ostream& stream, const T& arg)
+    {
+        stream << arg;
+    }
+
+    template<typename T, typename ...Args>
+    constexpr static inline void AddToStream
+    (std::ostream& stream, const T& arg, const Args&... args)
+    {
+        stream << arg;
+        AddToStream(stream, args...);
+    }
+
+    template <typename... Args>
+    static void Log(bool toFile, ANSICode ansiCode, Args... msg)
+    {
+        IGNORE_TIME_TRACKING_BEGIN;
         //final message that will appear
         std::string fmsg;
-
         //construct final message beginning text
         fmsg.append("-");
-        {
-        time_t t0 = time(0);
-		char cstr[26];
-		ctime_s(cstr, sizeof(cstr), &t0);
-		fmsg.append(cstr);
-		fmsg.pop_back();
-        }
-        fmsg.append(additional); //type
-
-        //checks if the variable is loggable
-        if constexpr (std::is_arithmetic_v<T>) //if variable is arithmetic
-        {
-            fmsg.append(std::to_string(msg));
-        }
-        else if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, const char*> || std::is_same_v<T, char*> ||
-            std::is_array_v<T> && std::is_same_v<std::remove_extent_t<T>, const char> ||
-            std::is_array_v<T> && std::is_same_v<std::remove_extent_t<T>, char>) //if variable is not arithmetic but is still loggable
-        {
-            fmsg.append(msg);
-        }
-        else if constexpr (std::is_same_v<T, std::string*>) //if variable is a std::string pointer
-        {
-            fmsg.append(msg->c_str());
-        }
-        else //if variable can not be printed
-        {
-            fmsg.append("Non loggable variable");
-        }
+        TimeUtils::GetDateToStr(fmsg); //date
+        std::ostringstream stream;
+        AddToStream(stream, msg...);
+        fmsg.append(stream.str());
 
         //if toFile is true it will write the log to a new file
         if (toFile)
@@ -51,13 +119,7 @@ namespace DebugUtils {
 
             //Path + file name
             std::string fileName = "Logs\\Log-"; 
-        {
-            time_t t0 = time(0);
-		    char cstr[26];
-		    ctime_s(cstr, sizeof(cstr), &t0);
-		    fileName.append(cstr);
-		    fileName.pop_back();
-        }
+            TimeUtils::GetDateToStr(fileName);
             for (char& c : fileName)
             {
                 if (c == ' ' || c == ':')
@@ -80,40 +142,75 @@ namespace DebugUtils {
         }
 
         //Log final message to console
-        std::cout << fmsg << std::endl;
-
+        std::cout << ANSICodeToCStr(ansiCode) << fmsg << ANSICodeToCStr(ANSICode::Reset) << std::endl;
+        IGNORE_TIME_TRACKING_END;
     }
+    #pragma endregion
+}
+
+inline void* operator new(size_t size)
+{
+    if (DebugUtils::gMemtrack)
+    {
+        DebugUtils::gAllocated += static_cast<unsigned int>(size);
+        DebugUtils::gAllocatedCount++;
+    }
+
+    return malloc(size);
+}
+
+inline void operator delete(void* memory, size_t size)
+{
+    if (DebugUtils::gMemtrack)
+    {
+        DebugUtils::gDeleted += static_cast<unsigned int>(size);
+        DebugUtils::gDeletedCount++;
+    }
+
+    free(memory);
 }
 
 #ifdef DEBUG
-    //Log to console only
-    #define DEBUG_INFO(MSG) DebugUtils::Log(MSG, "-Info:", false);
-    #define DEBUG_WARN(MSG) DebugUtils::Log(MSG, "-Warning:", false);
-    #define DEBUG_CRIT(MSG) DebugUtils::Log(MSG, "-Critical:", false);
-    #define DEBUG_ERROR(MSG) DebugUtils::Log(MSG, "-Error:", false);\
+    #define DEBUG_ACTIVATE_MEM_TRACK() DebugUtils::EnableMemoryTracking()
+    #define DEBUG_DISABLE_MEM_TRACK() DebugUtils::DisableMemoryTracking()
+    #define DEBUG_RESET_MEM_TRACK() DebugUtils::ResetMemoryTacking();
+    #define DEBUG_PRINT_MEM() DebugUtils::PrintMemory();
+    #define DEBUG_PRINT_MEMSIZEOF(NAME, ITEM) DebugUtils::PrintMemorySizeOf(NAME, ITEM);
+
+    #define DEBUG_RESET_TIME_TRACK() DebugUtils::ResetTimeTracking();
+    #define DEBUG_PRINT_TIME_TRACK() DebugUtils::PrintTimeTracked();
+
+    #define DEBUG_INFO(...) DebugUtils::Log(false, ANSICode::Reset, "-Info:", __VA_ARGS__);
+    #define DEBUG_WARN(...) DebugUtils::Log(false, ANSICode::BrightYellow,"-Warning:", __VA_ARGS__);
+    #define DEBUG_ERROR(...) DebugUtils::Log(false, ANSICode::BrightRed, "-Error:", __VA_ARGS__);\
     __debugbreak();
-    #define DEBUG_TODO(MSG) DebugUtils::Log(MSG, "-TODO:", false);
+    #define DEBUG_TODO(...) DebugUtils::Log(false, ANSICode::Reset, "-TODO:", __VA_ARGS__);
     
-    //Log to console and write to file
-    #define DEBUG_FILE_INFO(MSG) DebugUtils::Log(MSG, "-Info:", true);
-    #define DEBUG_FILE_WARN(MSG) DebugUtils::Log(MSG, "-Warning:", true);
-    #define DEBUG_FILE_CRIT(MSG) DebugUtils::Log(MSG, "-Critical:", true);
-    #define DEBUG_FILE_ERROR(MSG) DebugUtils::Log(MSG, "-Error:", true);\
+    #define DEBUG_FILE_INFO(...) DebugUtils::Log(true, ANSICode::Reset, "-Info:", __VA_ARGS__);
+    #define DEBUG_FILE_WARN(...) DebugUtils::Log(true, ANSICode::BrightYellow, "-Warning:", __VA_ARGS__);
+    #define DEBUG_FILE_ERROR(...) DebugUtils::Log(true, ANSICode::BrightRed, "-Erro:", __VA_ARGS__);\
     __debugbreak();
-    #define DEBUG_FILE_TODO(MSG) DebugUtils::Log(MSG, "-TODO:", true);
+    #define DEBUG_FILE_TODO(...) DebugUtils::Log(true, ANSICode::Reset, "-TODO:", __VA_ARGS__);
 
 #else
-//Log to console only
-    #define DEBUG_INFO(MSG)
-    #define DEBUG_WARN(MSG)
-    #define DEBUG_CRIT(MSG)
-    #define DEBUG_ERROR(MSG)
-    #define DEBUG_TODO(MSG)
+    #define DEBUG_ACTIVATE_MEM_TRACK()
+    #define DEBUG_DISABLE_MEM_TRACK()
+    #define DEBUG_RESET_MEM_TRACK()
+    #define DEBUG_PRINT_MEM(
+    #define DEBUG_PRINT_MEMSIZEOF(NAME, ITEM)
 
-//Log to console and write to file
-    #define DEBUG_FILE_INFO(MSG) 
-    #define DEBUG_FILE_WARN(MSG) 
-    #define DEBUG_FILE_CRIT(MSG)
-    #define DEBUG_FILE_ERROR(MSG)
-    #define DEBUG_FILE_TODO(MSG)
+    #define DEBUG_RESET_TIME_TRACK()
+    #define DEBUG_PRINT_TIME_TRACK()
+
+    #define DEBUG_INFO(...)
+    #define DEBUG_WARN(...)
+    #define DEBUG_CRIT(...)
+    #define DEBUG_ERROR(...)
+    #define DEBUG_TODO(...)
+
+    #define DEBUG_FILE_INFO(...) 
+    #define DEBUG_FILE_WARN(...) 
+    #define DEBUG_FILE_CRIT(...)
+    #define DEBUG_FILE_ERROR(...)
+    #define DEBUG_FILE_TODO(...)
 #endif // DEBUG

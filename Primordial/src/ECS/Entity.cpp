@@ -5,44 +5,41 @@
 #include "Components/Component.hpp"
 #include "VUtils/DebugUtils.hpp"
 
-namespace ECS
+void ECS::Entity::_PrintComponentWarning(const char* str) const
 {
-    void Entity::_PrintComponentWarning(const char* str) const
+    DEBUG_WARN(str);
+}
+void ECS::Entity::TargetUpdate()
+{
+    //A copy is made because if a new component is added it should not be update
+    //until the next update call
+    const std::vector<Component*> attached_components = mAttachedComponents;
+    for (Component* c : attached_components)
     {
-        DEBUG_FILE_WARN(str);
+        assert(c != NULL && c->mAssignedEntity == this);
+        if (c->IsEnable())
+            c->OnTargetUpdate();
     }
-    void Entity::TargetUpdate()
+    OnTargetUpdate();
+}
+void ECS::Entity::TickUpdate()
+{
+    //A copy is made because if a new component is added it should not be update
+    //until the next update call
+    const std::vector<Component*> attached_components = mAttachedComponents;
+    for (Component* c : mAttachedComponents)
     {
-        //A copy is made because if a new component is added it should not be update
-        //until the next update call
-        const std::vector<Component*> attached_components = mAttachedComponents;
-        for (Component* c : attached_components)
-        {
-            assert(c != NULL && c->mAssignedEntity == this);
-            if (c->IsEnable())
-                c->OnTargetUpdate();
-        }
-        OnTargetUpdate();
+        assert(c != NULL && c->mAssignedEntity == this);
+        if (c->IsEnable())
+            c->OnTickUpdate();
     }
-    void Entity::TickUpdate()
-    {
-        //A copy is made because if a new component is added it should not be update
-        //until the next update call
-        const std::vector<Component*> attached_components = mAttachedComponents;
-        for (Component* c : mAttachedComponents)
-        {
-            assert(c != NULL && c->mAssignedEntity == this);
-            if (c->IsEnable())
-                c->OnTickUpdate();
-        }
-        OnTickUpdate();
-    }
-    void Entity::RemovePhysicsBody()
-    {
-        Scene::mRegistry.remove<CPhysicsBody>(mID);
-    }
-    void Entity::RemoveCRenderer()
-    {
-        Scene::mRegistry.remove<CRenderer>(mID);
-    }
+    OnTickUpdate();
+}
+void ECS::Entity::RemovePhysicsBody()
+{
+    Scene::mRegistry.remove<CPhysicsBody>(mID);
+}
+void ECS::Entity::RemoveCRenderer()
+{
+    Scene::mRegistry.remove<CRenderer>(mID);
 }

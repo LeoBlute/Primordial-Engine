@@ -6,7 +6,6 @@
 #include <vector>
 #include <algorithm>
 
-#include "VUtils/PerformanceTracker.hpp"
 #include "VUtils/DebugUtils.hpp"
 #include "VUtils/FileUtils.hpp"
 #include "VUtils/Events.hpp"
