@@ -1,11 +1,12 @@
-# Primordial
-Primordial Engine is a barebones glfw opengl 2D game engine with the following features:<br />
-Window system<br />
-Input system<br />
-Audio System(irrKlang implementation)<br />
-Renderer2D<br />
-GUI (ImGui integration and implementation)<br />
-ECS with Scene implementation<br />
-2D physics(Box2d implementation)<br />
-Framerate independant logic<br />
-Framerate cap
+# Primordial Engine
+Primordial Engine is a bare-bones 2D game engine built with GLFW and OpenGL<br />
+
+## Core Features
+- Window Management<br />
+- Input System<br />
+- Audio System<br />
+- 2D Rendering<br />
+- GUI<br />
+- Entity Component System<br />
+- Physics<br />
+- Framerate independant logic<br />
